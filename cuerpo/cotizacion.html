@@ -1,0 +1,2956 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinil Products Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #1a1a1a;
+            color: #f5f5f5;
+            padding-top: 0!important;
+        }
+        .container {
+            max-width: 90%;
+            margin: 0rem auto 1rem auto;
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header-bg {
+            background-color: #383838;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.75rem;
+        }
+        th, td {
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 500;
+            color: #d1d5db;
+        }
+        tr:hover {
+            background-color: #383838;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .input-group input, .input-group select {
+            background-color: #4b5563;
+            border: 1px solid #6b7280;
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            color: #e5e7eb;
+            font-size: 0.875rem;
+        }
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px #6366f1;
+        }
+        .sidebar-container {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            background-color: #2c313c;
+            color: white;
+            z-index: 60;
+            box-shadow: -4px 0 10px rgba(0, 0, 0, 0.2);
+            transition: right 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-container.active {
+            right: 0;
+        }
+        .form-container {
+            padding-top: 1.5rem;
+            padding-bottom: 2.5rem;
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+        .open-form-btn {
+            background-color: #ff6d20;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .open-form-btn:hover {
+            background-color: #e6621f;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2a2a2a;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        @media (max-width: 600px) {
+            .sidebar-container {
+                width: 95%;
+                right: -95%;
+                max-width: none;
+            }
+        }
+        .form-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .form-container::-webkit-scrollbar-track {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+        .form-container::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 10px;
+            border: 2px solid #4b5563;
+        }
+        .form-container::-webkit-scrollbar-thumb:hover {
+            background-color: #f5f5f5;
+        }
+        /* Ocultar la barra de desplazamiento horizontal de la tabla */
+        .table-container::-webkit-scrollbar {
+            display: none; /* Para Chrome, Safari, Opera */
+        }
+        .table-container {
+            -ms-overflow-style: none;  /* Para IE y Edge */
+            scrollbar-width: none;  /* Para Firefox */
+        }
+
+
+        .autocomplete-container {
+            position: relative;
+        }
+        #autocompletePopup {
+            position: fixed;
+            background-color: #2c313c;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 50;
+            max-height: 400px;
+            width: 350px;
+            overflow-y: auto;
+            border: 1px solid #383838;
+            padding: 8px;
+            transition: opacity 0.2s, transform 0.2s;
+            transform-origin: top left;
+        }
+        .autocomplete-popup.hidden {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .suggestion-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            color: #d1d5db;
+            border-bottom: 1px solid #444;
+            transition: background-color 0.2s;
+        }
+        .suggestion-item:hover {
+            background-color: #3e4451;
+        }
+        .invoice-preview {
+            background-color: #2a2a2a;
+            color: #d1d5db;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .invoice-table th, .invoice-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #444;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+        .invoice-table th {
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+        .totals-table {
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+        .totals-table td {
+            padding: 0.25rem 0.5rem;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        .small-button {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            line-height: 1;
+        }
+        @media (min-width: 1024px) {
+            .body-two-panels #otSidebar {
+                right: 480px;
+            }
+            .body-two-panels #previewSidebar {
+                right: 0;
+            }
+        }
+        .ot-panel-content {
+            background-color: #2a2a2a;
+            color: #d1d5db;
+            flex-grow: 1; /* Permite que el contenedor crezca */
+            overflow-y: auto; /* Habilita el scroll vertical cuando sea necesario */
+            padding: 1rem;
+        }
+        .ot-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem;
+            text-align: center;
+        }
+        .ot-grid-header {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .ot-grid-cell {
+            background-color: #383838;
+            padding: 1.5rem 0.75rem;
+            border-radius: 8px;
+            min-height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ot-client-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        #previewSidebar.sidebar-container {
+            width: 600px;
+            max-width: 98vw;
+            right: -600px;
+            overflow-y: auto; /* Permite desplazamiento vertical cuando la lista crece */
+            overflow-x: hidden; /* Evita scroll horizontal accidental */
+        }
+        #previewSidebar.sidebar-container.active {
+            right: 0;
+        }
+        #otSidebar.sidebar-container {
+            width: 500px;
+            max-width: 95vw;
+            right: -500px;
+        }
+        .body-two-panels #otSidebar.sidebar-container.active {
+            right: 600px;
+        }
+        @media (min-width: 1024px) {
+            .body-two-panels .sidebar-container.active {
+                width: auto;
+                max-width: none;
+            }
+            .body-two-panels #otSidebar {
+                right: 480px;
+            }
+            .body-two-panels #previewSidebar {
+                right: 0;
+            }
+        }
+        #previewSidebar.sidebar-container {
+            z-index: 62;
+        }
+        #otSidebar.sidebar-container {
+            z-index: 61;
+        }
+        #otSidebar.sidebar-container,
+        #otSidebar .ot-panel-content {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 400;
+            color: #d1d5db;
+        }
+        #otSidebar .ot-panel-content h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin-bottom: 1.5rem;
+        }
+        .ot-grid-cell {
+            background-color: #383838;
+            padding: 2rem 0.75rem;
+            border-radius: 8px;
+            min-height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #otDescripcionInput {
+            min-height: 2.5rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            text-align: center;
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 50%; /* Ocupa la mitad inferior */
+            resize: none;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .ot-descripcion-producto {
+            height: 50%; /* Ocupa la mitad superior */
+            height: 100%;
+            resize: none;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        @media print {
+            body, html {
+                background: #fff !important;
+                color: #222 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100%;
+                height: 100%;
+            }
+            body * {
+                visibility: hidden !important;
+            }
+            #previewSidebar,
+            #previewSidebar * {
+                visibility: visible !important;
+            }
+            #previewSidebar {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                box-shadow: none !important;
+                background: #fff !important;
+                color: #222 !important;
+                z-index: 9999 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                display: block !important;
+                transform: none !important;
+            }
+            #previewSidebar .invoice-preview {
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #fff !important;
+                color: #222 !important;
+            }
+            @page {
+                size: letter portrait;
+                margin: 1cm 1.2cm 1.2cm 1.2cm;
+            }
+            .invoice-table, .totals-table {
+                width: 100% !important;
+                font-size: 12pt !important;
+                color: #222 !important;
+                background: #fff !important;
+            }
+            .invoice-table th, .invoice-table td,
+            .totals-table td {
+                color: #222 !important;
+                background: #fff !important;
+                border-color: #bbb !important;
+                padding: 8px !important;
+            }
+            .invoice-table th {
+                font-weight: bold !important;
+                font-size: 13pt !important;
+            }
+            .invoice-table td {
+                font-size: 12pt !important;
+            }
+            /* Hide the logo SVG for print to keep the layout clean */
+            #previewSidebar svg {
+                display: none !important;
+            }
+            #previewSidebar h1,
+            #previewSidebar h2,
+            #previewSidebar .font-bold {
+                color: #222 !important;
+                font-weight: bold !important;
+            }
+            #previewSidebar .action-buttons,
+            #previewSidebar button,
+            #previewSidebar .small-button,
+            #previewSidebar .print-button,
+            /* Explicitly hide action buttons by ID to avoid any residual text */
+            #otBtn, #saveQuoteBtn, #editPreviewBtn, #printBtn, #cancelPreviewBtn {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 0 !important;
+                color: transparent !important;
+                background: transparent !important;
+                border: none !important;
+                overflow: hidden !important;
+            }
+            #previewSidebar .bg-gray-700,
+            #previewSidebar .bg-gray-800,
+            #previewSidebar .bg-gray-900 {
+                background: #fff !important;
+            }
+            #previewSidebar .invoice-preview {
+                margin: 0 !important;
+                padding: 0.5cm 0.5cm 0.5cm 0.5cm !important;
+            }
+            /* Notes list: underline each item and add small spacing */
+            #previewNotasList {
+                padding-left: 1.1rem !important;
+                margin: 0 0 0.25rem 0 !important;
+            }
+            #previewNotasList li {
+                text-decoration: none !important;
+                border-bottom: 1px solid #bbb !important;
+                padding-bottom: 3px !important;
+                margin-bottom: 6px !important;
+                color: #222 !important;
+            }
+
+            /* Ensure invoice table wraps and aligns nicely on paper */
+            .invoice-table th, .invoice-table td,
+            .totals-table td {
+                white-space: normal !important;
+                text-align: left !important;
+                vertical-align: top !important;
+                border-bottom: 1px solid #bbb !important;
+                color: #222 !important;
+            }
+            /* Underline table header and rows to look like a ledger/list and improve ordering */
+            .invoice-table thead {
+                display: table-header-group !important; /* repeat header on page breaks */
+            }
+            .invoice-table thead tr th {
+                border-bottom: 2px solid #000 !important;
+                padding-bottom: 10px !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.02em !important;
+            }
+            .invoice-table tbody tr {
+                page-break-inside: avoid !important;
+            }
+            .invoice-table tbody tr td {
+                border-bottom: 1px solid #bbb !important; /* solid underline for each row */
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+            }
+
+            /* Fix column widths and alignments for a cleaner layout */
+            .invoice-table { table-layout: fixed !important; }
+            .invoice-table th:nth-child(1), .invoice-table td:nth-child(1) { width: 6% !important; text-align: center !important; }
+            .invoice-table th:nth-child(2), .invoice-table td:nth-child(2) { width: 8% !important; text-align: center !important; }
+            .invoice-table th:nth-child(3), .invoice-table td:nth-child(3) { width: 50% !important; }
+            .invoice-table th:nth-child(4), .invoice-table td:nth-child(4) { width: 12% !important; text-align: right !important; }
+            .invoice-table th:nth-child(5), .invoice-table td:nth-child(5) { width: 12% !important; text-align: right !important; }
+            .invoice-table th:nth-child(6), .invoice-table td:nth-child(6) { width: 12% !important; text-align: right !important; }
+            /* Hide the action buttons at the end (O.T., Imprimir, Cancelar) */
+            .invoice-preview .action-buttons,
+            .invoice-preview .action-buttons * {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 0 !important;
+                color: transparent !important;
+                background: transparent !important;
+                border: none !important;
+                overflow: hidden !important;
+            }
+            /* Keep quantity column compact and centered */
+            .invoice-table th:nth-child(2), .invoice-table td:nth-child(2) {
+                width: 8% !important;
+                text-align: center !important;
+            }
+            /* Prices and totals right-aligned */
+            .invoice-table th:nth-child(5), .invoice-table td:nth-child(5),
+            .invoice-table th:nth-child(6), .invoice-table td:nth-child(6) {
+                text-align: right !important;
+                white-space: nowrap !important;
+            }
+            .totals-table td:first-child { text-align: left !important; }
+            .totals-table td:last-child { text-align: right !important; }
+
+            /* Make sure the preview container uses full printable width */
+            .invoice-preview, #previewSidebar {
+                box-sizing: border-box !important;
+                padding: 0.5cm !important;
+            }
+            ::-webkit-scrollbar {
+                display: none !important;
+            }
+
+            /* Print styles for OT panel */
+            body.print-ot #otSidebar,
+            body.print-ot #otSidebar * {
+                visibility: visible !important;
+            }
+            body.print-ot #otSidebar {
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                box-shadow: none !important;
+                background: #fff !important;
+                color: #222 !important;
+                z-index: 9999 !important;
+                margin: 0 !important;
+                padding: 20px !important;
+                overflow: visible !important;
+                display: block !important;
+                transform: none !important;
+            }
+            body.print-ot #otSidebar .bg-gray-700,
+            body.print-ot #otSidebar .bg-gray-800,
+            body.print-ot #otSidebar .bg-gray-900 {
+                background: #fff !important;
+                border: 1px solid #ccc !important;
+            }
+            body.print-ot #otSidebar .ot-panel-content {
+                color: #222 !important;
+                background: #fff !important;
+            }
+            body.print-ot #otSidebar .ot-panel-content h2 {
+                color: #222 !important;
+                font-size: 1.5rem !important;
+                margin-bottom: 20px !important;
+            }
+            body.print-ot #otSidebar .ot-grid-cell {
+                background: #fff !important;
+                border: 1px solid #bbb !important;
+                color: #222 !important;
+            }
+            body.print-ot #otSidebar #otDescripcionInput {
+                border: 1px solid #ccc !important;
+                background: #fff !important;
+                box-shadow: none !important;
+                color: #222 !important;
+            }
+            body.print-ot #otSidebar .ot-grid {
+                border: 1px solid #ccc !important;
+            }
+            body.print-ot #otSidebar .ot-grid-header {
+                background: #f5f5f5 !important;
+                border: 1px solid #ccc !important;
+                color: #222 !important;
+                font-weight: bold !important;
+            }
+            body.print-ot #otSidebar .action-buttons,
+            body.print-ot #otSidebar button {
+                display: none !important;
+            }
+        }
+        .custom-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem; /* Espacio para la flecha */
+            /* Asegura que el padding de Tailwind no sobreescriba el padding-right */
+            padding-left: 0.75rem; 
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+<div class="container mx-auto p-8 bg-gray-800 rounded-xl shadow-lg">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-xl md:text-lg font-bold text-white mb-4 md:mb-0 uppercase">Cotizaciones</h1>
+        <div class="search-container flex items-center space-x-4">
+            <button id="openFormBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-medium text-xs uppercase py-2.5 px-4 rounded-lg transition-colors duration-200">Cotizar</button>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="w-full text-xs">
+            <thead>
+                <tr class="bg-gray-700 text-white text-center uppercase">
+                    <th class="py-3 px-4 rounded-tl-lg">NRO</th>
+                    <th class="py-3 px-4">CLIENTE</th>
+                    <th class="py-3 px-4">MATERIAL</th>
+                    <th class="py-3 px-4">P. TOTAL</th>
+                    <th class="py-3 px-4">MEDIDA</th>
+                    <th class="py-3 px-4">O.T.</th>
+                    <th class="py-3 px-4">FECHA</th>
+                    <th class="py-3 px-4">NOTA</th>
+                    <th class="py-3 px-4 rounded-tr-lg"></th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody" class="text-gray-300">
+                <tr><td colspan="9" class="text-center py-4 text-gray-400">Cargando datos...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div class="sidebar-container" id="sidebar">
+    <div class="form-container">
+        <div class="form-section">
+            <h2 class="text-2xl font-semibold mb-6 text-white text-center">Registrar cotización</h2>
+            <form id="newSaleForm" class="flex flex-col gap-4">
+                <div class="autocomplete-container" style="position:relative;">
+                    <input type="text" id="newEmpresa" placeholder="Nombre de la empresa" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                </div>
+                <input type="text" id="newRut" placeholder="R.U.T." required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="email" id="newCorreo" placeholder="Correo electrónico" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <div class="autocomplete-container">
+                    <input type="text" id="newContacto" placeholder="Persona de contacto" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                </div>
+                <input type="tel" id="newTelefono" placeholder="Teléfono" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-lg font-bold text-white">Producto</span>
+                    <div class="flex items-center space-x-2" id="productTabs">
+                        <button type="button" class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center focus:outline-none border-2 border-blue-700" data-index="0">1</button>
+                        <button type="button" class="w-8 h-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center focus:outline-none opacity-80 hover:opacity-100" id="addProductBtn">+</button>
+                    </div>
+                </div>
+                <select id="newMaterialCategory" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm custom-select"><option value="">1. Seleccione una categoría...</option></select>
+                <select id="newMaterialSection" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm mt-2 custom-select" style="display: none;"><option value="">2. Seleccione un grupo...</option></select>
+                <select id="newMaterial" class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm mt-2 custom-select" style="display: none;"><option value="">3. Producto (Automático)</option></select>
+                <input type="number" id="newAncho" placeholder="Ancho (cm)" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="number" id="newLargo" placeholder="Largo (cm)" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="number" id="newCantidad" placeholder="Cantidad" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <div class="relative">
+                    <input type="number" id="newDescuento" placeholder="Descuento (%)" class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm pr-8">
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500">%</span>
+                </div>
+                <textarea id="newNota" placeholder="Nota" class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-xl p-3 w-full text-sm min-h-[4rem]"></textarea>
+        <div class="action-buttons mt-6">
+          <button id="previewBtn" type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">Previsualizar</button>
+          <button type="button" id="cancelBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">Cancelar</button>
+        </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar-container" id="previewSidebar">
+    <div class="invoice-preview p-6">
+        <div class="flex justify-between items-center mb-6">
+                <div>
+                <h1 class="text-xl font-bold text-white uppercase">COTIZACIÓN N°: <span id="previewQuoteNumber"></span></h1>
+                <p class="text-sm">SPEED SERVIC</p>
+                <p class="text-xs text-gray-400">Servicios de imprenta</p>
+                <p class="text-xs text-gray-400">Correo: <span id="previewCorreoHeader"></span></p>
+                <p class="text-xs text-gray-400">Cel : <span id="previewContactoHeader"></span></p>
+            </div>
+            <svg width="100" height="50" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 50 L50 0 L150 0 L200 50 L150 100 L50 100 Z" fill="#ff6d20" stroke="#ff6d20" stroke-width="2"/>
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#2a2a2a" font-size="25" font-weight="bold">LOGO</text>
+            </svg>
+        </div>
+        
+        <div class="bg-gray-700 p-4 rounded-lg mb-6">
+            <p class="font-bold text-base mb-2">Datos del Cliente</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <p><span class="font-bold">Señor(es):</span> <span id="previewEmpresa"></span></p>
+                <p><span class="font-bold">RUT:</span> <span id="previewRut"></span></p>
+                <p><span class="font-bold">Contacto:</span> <span id="previewContacto"></span></p>
+                <p><span class="font-bold">Fecha Emisión:</span> <span id="previewDate"></span></p>
+            </div>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+                <tr class="bg-gray-700 rounded-t-lg">
+                    <th class="rounded-tl-lg">N°</th>
+                    <th>CANT.</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>DESC.</th>
+                    <th>V. UNI.</th>
+                    <th class="rounded-tr-lg">TOTAL</th>
+                </tr>
+            </thead>
+            <tbody id="previewTableBody">
+            </tbody>
+        </table>
+
+        <div class="flex justify-between items-start mt-6">
+            <div class="w-1/2">
+                <p class="font-bold text-sm mb-2">NOTA:</p>
+                <div id="previewNotas" class="text-sm bg-gray-700 p-3 rounded-lg">
+                    <ol id="previewNotasList" class="list-decimal list-inside"></ol>
+                </div>
+            </div>
+            <table class="totals-table w-1/2">
+                <tbody>
+                    <tr>
+                        <td class="font-bold">SUBTOTAL($)</td>
+                        <td>$ <span id="previewSubtotal"></span></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">DESCUENTO($)</td>
+                        <td>$ <span id="previewDescuentoTotal"></span></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">NETO($)</td>
+                        <td>$ <span id="previewNeto"></span></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">I.V.A.(19%)</td>
+                        <td>$ <span id="previewIVA"></span></td>
+                    </tr>
+                    <tr class="text-white text-lg font-bold">
+                        <td>TOTAL</td>
+                        <td>$ <span id="previewTotal"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="action-buttons mt-6">
+            <button id="otBtn" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">O.T.</button>
+            <button id="saveQuoteBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">Guardar Cotización</button>
+            <button id="editPreviewBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">Editar</button>
+            <button id="printBtn" type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 print-button small-button">Imprimir</button>
+            <button id="cancelPreviewBtn" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar-container" id="otSidebar">
+    <div class="ot-panel-content p-6">
+    <h2 class="text-2xl font-bold text-white mb-6 text-center">ORDEN DE TRABAJO N°: <span id="otNumber"></span></h2>
+        <div class="bg-gray-700 p-4 rounded-lg mb-6">
+            <p class="font-bold text-base mb-2">Datos del Cliente</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div>
+                    <p><span class="font-bold">Cliente:</span> <span id="otEmpresa"></span></p>
+                    <p><span class="font-bold">Contacto:</span> <span id="otContacto"></span></p>
+                    <p><span class="font-bold">Recepción:</span> <span id="otReceivedDate"></span></p>
+                    <p><span class="font-bold">Entrega:</span>
+                        <input id="otDeliveryDate" type="text" placeholder="dd-mm-aaaa" class="bg-transparent text-gray-100 border border-gray-600 rounded px-2 py-1 text-sm w-full md:w-auto" />
+                    </p>
+                    <p><span class="font-bold">Recepcionista:</span>
+                        <input id="otReceptionist" type="text" placeholder="Nombre del recepcionista" class="bg-transparent text-gray-100 border border-gray-600 rounded px-2 py-1 text-sm w-full md:w-auto" />
+                    </p>
+                </div>
+                <div>
+                    <p><span class="font-bold">RUT:</span> <span id="otRut"></span></p>
+                    <p><span class="font-bold">Hora:</span> <span id="otReceivedTime" class="text-sm text-gray-300 ml-2"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="otGridContainer" class="ot-grid">
+            <div class="ot-grid-header">CANT.</div>
+            <div class="ot-grid-header">GRÁFICA</div>
+            <div class="ot-grid-header">DESCRIPCIÓN</div>
+            <!-- Las filas de productos se insertarán aquí dinámicamente -->
+        </div>
+        
+        <div class="action-buttons mt-6">
+    <button id="printOtBtn" type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">Imprimir O.T.</button>
+            <button id="saveOtBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button" style="display: none;">Guardar O.T.</button>
+            <button id="closeOtBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 small-button">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar-container" id="editSidebar">
+    <div class="form-container">
+        <div class="form-section">
+            <h2 class="text-2xl font-semibold mb-6 text-white text-center">Editar producto</h2>
+            <form id="editSaleForm" class="flex flex-col gap-4">
+                <input type="hidden" id="editSaleId">
+                <input type="text" id="editEmpresa" placeholder="Nombre de la empresa" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="text" id="editRut" placeholder="R.U.T." required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="text" id="editGiro" placeholder="Giro" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="tel" id="editTelefono" placeholder="Teléfono" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="email" id="editCorreo" placeholder="Correo electrónico" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="text" id="editContacto" placeholder="Persona de contacto" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-lg font-bold text-white">Producto</span>
+                    <div class="flex items-center space-x-2" id="editProductTabs">
+                        <button type="button" class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center focus:outline-none border-2 border-blue-700" data-index="0">1</button>
+                        <button type="button" class="w-8 h-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center focus:outline-none opacity-80 hover:opacity-100" id="addEditProductBtn">+</button>
+                    </div>
+                </div>
+                <select id="editMaterial" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm"><option value="">Seleccione un material...</option></select>
+                <input type="number" id="editAncho" placeholder="Ancho (cm)" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="number" id="editLargo" placeholder="Largo (cm)" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <input type="number" id="editCantidad" placeholder="Cantidad" required class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-full p-3 w-full text-sm">
+                <textarea id="editNota" placeholder="Nota" class="bg-white text-gray-700 placeholder-gray-400 border-none rounded-xl p-3 w-full text-sm min-h-[4rem]"></textarea>
+                <div class="action-buttons mt-6">
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">Guardar</button>
+                    <button type="button" id="cancelEditBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2 class="text-base font-bold mb-4">Confirmar Eliminación</h2>
+        <p class="mb-4 text-sm">¿Estás seguro de que quieres eliminar este producto?</p>
+        <div class="flex justify-end space-x-4">
+            <button id="cancelDeleteBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold text-xs py-2 px-3 rounded-lg transition-colors duration-200">Cancelar</button>
+            <button id="confirmDeleteBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 px-3 rounded-lg transition-colors duration-200">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // --- Conexión a Supabase ---
+    const supabase = window.parent.supabase;
+    if (!supabase) {
+        alert("Error: No se pudo conectar a Supabase. Asegúrate de que index.html esté configurado correctamente.");
+        // return; // Comentado para que el resto del script no se rompa si se abre directamente
+    }
+
+    // --- Elementos de la UI ---
+    const tableBody = document.getElementById('salesTableBody');
+    const sidebar = document.getElementById('sidebar');
+    const editSidebar = document.getElementById('editSidebar');
+    const previewSidebar = document.getElementById('previewSidebar');
+    const otSidebar = document.getElementById('otSidebar');
+    const deleteModal = document.getElementById('deleteModal');
+    const newSaleForm = document.getElementById('newSaleForm');
+
+    const newEmpresaInput = document.getElementById('newEmpresa');
+    const newRutInput = document.getElementById('newRut');
+    const newTelefonoInput = document.getElementById('newTelefono');
+    const newCorreoInput = document.getElementById('newCorreo');
+    const newContactoInput = document.getElementById('newContacto');
+    const newMaterialCategoryInput = document.getElementById('newMaterialCategory');
+    const newMaterialSectionInput = document.getElementById('newMaterialSection');
+    const newMaterialInput = document.getElementById('newMaterial');
+    const newAnchoInput = document.getElementById('newAncho');
+    const newLargoInput = document.getElementById('newLargo');
+    const newCantidadInput = document.getElementById('newCantidad');
+    const newDescuentoInput = document.getElementById('newDescuento');
+    const newNotaInput = document.getElementById('newNota');
+    const autocompletePopup = document.getElementById('autocompletePopup');
+    const productTabs = document.getElementById('productTabs');
+
+    // --- Estado de la Aplicación ---
+    let productosCotizacion = [
+        {
+            category: '',
+            sectionId: '',
+            productId: '',
+            productName: '',
+            ancho: '',
+            largo: '',
+            cantidad: '',
+            precioTotal: 0,
+            descuento: '',
+            nota: ''
+        }
+    ];
+    let productoActual = 0;
+    let saleToDeleteId = null;
+    let allClientsData = [];
+    let allCatalogData = { categories: [], sections: [], products: [] };
+    let currentEditingId = null;
+    let allQuotesData = []; // Variable para almacenar todas las cotizaciones
+    let isProgrammaticChange = false; // Evita recálculos durante carga programática de inputs
+
+    function renderProductTabs() {
+        productTabs.innerHTML = '';
+        productosCotizacion.forEach((prod, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `w-8 h-8 rounded-full ${productoActual === idx ? 'bg-blue-600 border-2 border-blue-700' : 'bg-blue-500 opacity-80 hover:opacity-100'} text-white font-bold flex items-center justify-center focus:outline-none mx-0.5 transition-all`;
+            btn.textContent = idx + 1;
+            btn.dataset.index = idx;
+            btn.onclick = () => {
+                guardarProductoActual();
+                productoActual = idx;
+                cargarProductoActual();
+                renderProductTabs();
+            };
+            productTabs.appendChild(btn);
+        });
+
+        const plusBtn = document.createElement('button');
+        plusBtn.type = 'button';
+        plusBtn.className = 'w-8 h-8 rounded-full bg-green-500 text-white font-bold flex items-center justify-center focus:outline-none opacity-80 hover:opacity-100 mx-0.5';
+        plusBtn.id = 'addProductBtn';
+        plusBtn.textContent = '+';
+        plusBtn.onclick = () => {
+            guardarProductoActual();
+            productosCotizacion.push({
+                category: '', sectionId: '', productId: '', productName: '', ancho: '', largo: '', cantidad: '', precioTotal: 0, descuento: '', nota: ''
+            });
+            productoActual = productosCotizacion.length - 1;
+            cargarProductoActual();
+            renderProductTabs();
+        };
+        productTabs.appendChild(plusBtn);
+
+        if (productosCotizacion.length > 1) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'w-8 h-8 rounded-full bg-red-500 text-white font-bold flex items-center justify-center focus:outline-none opacity-90 hover:opacity-100 mx-0.5';
+            deleteBtn.textContent = '🗑';
+            deleteBtn.onclick = () => {
+                productosCotizacion.splice(productoActual, 1);
+                productoActual = Math.max(0, productoActual - 1);
+                cargarProductoActual();
+                renderProductTabs();
+            };
+            productTabs.appendChild(deleteBtn);
+        }
+    }
+
+    function guardarProductoActual() {
+        const categorySelect = document.getElementById('newMaterialCategory');
+        const sectionSelect = document.getElementById('newMaterialSection');
+        const productSelect = document.getElementById('newMaterial');
+        const selectedProductOption = productSelect.options[productSelect.selectedIndex];
+
+        // Asegurarse de que el producto actual existe en el array
+        if (!productosCotizacion[productoActual]) {
+            productosCotizacion[productoActual] = {
+                category: '', sectionId: '', productId: '', productName: '', ancho: '', largo: '', cantidad: '', precioTotal: 0, descuento: '', nota: ''
+            };
+        }
+
+        // Obtener productName: primero del estado guardado (si existe), luego del dropdown, luego calcular
+        let productName = productosCotizacion[productoActual].productName || '';
+        if (selectedProductOption && selectedProductOption.text) {
+            productName = selectedProductOption.text;
+        } else if (!productName) {
+            // Si no hay productName, intentar calcularlo desde el mejor producto
+            const sectionId = sectionSelect.value;
+            const ancho = document.getElementById('newAncho').value;
+            const largo = document.getElementById('newLargo').value;
+            if (sectionId && ancho && largo) {
+                const bestProduct = findBestProductForSection(sectionId, ancho, largo);
+                if (bestProduct) {
+                    productName = `${bestProduct.nombre_producto} (${bestProduct.medida || 'N/A'})`;
+                }
+            }
+        }
+
+        productosCotizacion[productoActual] = {
+            category: categorySelect.value,
+            sectionId: sectionSelect.value,
+            productId: productSelect.value || productosCotizacion[productoActual].productId || '',
+            productName: productName,
+            ancho: document.getElementById('newAncho').value,
+            largo: document.getElementById('newLargo').value,
+            cantidad: document.getElementById('newCantidad').value,
+            // CORRECCIÓN DEFINITIVA: Al guardar, SIEMPRE se debe conservar el precio que ya está en el estado del producto.
+            // El precio solo se recalcula en `recalculateAndPreviewCurrentProduct` cuando el usuario cambia las medidas, material o cantidad.
+            precioTotal: productosCotizacion[productoActual]?.precioTotal || 0,
+            descuento: document.getElementById('newDescuento').value,
+            nota: document.getElementById('newNota').value
+        };
+    }
+
+    function cargarProductoActual() {
+        const prod = productosCotizacion[productoActual];
+        const categorySelect = document.getElementById('newMaterialCategory');
+        const sectionSelect = document.getElementById('newMaterialSection');
+        const productSelect = document.getElementById('newMaterial');
+
+        // Marcar que estamos haciendo cambios programáticos para que los listeners no recalcule
+        isProgrammaticChange = true;
+
+        categorySelect.value = prod.category || '';
+        categorySelect.dispatchEvent(new Event('change'));
+
+        // Wait for sections to load, then set section
+        setTimeout(() => {
+            if (prod.sectionId) {
+                sectionSelect.value = prod.sectionId;
+                sectionSelect.dispatchEvent(new Event('change'));
+                
+                // Wait for products to load, then set product
+                setTimeout(() => {
+                    if (prod.productId) {
+                        productSelect.value = prod.productId;
+                    }
+                    // Cargar los demás campos SIN recalcular (el precio ya está guardado en el estado)
+                    document.getElementById('newAncho').value = prod.ancho || '';
+                    document.getElementById('newLargo').value = prod.largo || '';
+                    document.getElementById('newCantidad').value = prod.cantidad || '';
+                    document.getElementById('newDescuento').value = prod.descuento || '';
+                    document.getElementById('newNota').value = prod.nota || '';
+                    // NO se llama a recalculateAndPreviewCurrentProduct() aquí para evitar recálculos no deseados.
+                    // Liberar el flag unos ms después para permitir que cualquier change programático termine
+                }, 100);
+                setTimeout(() => { isProgrammaticChange = false; }, 220);
+            } else {
+                // Si no hay sección, simplemente cargar los otros campos.
+                document.getElementById('newAncho').value = prod.ancho || '';
+                document.getElementById('newLargo').value = prod.largo || '';
+                document.getElementById('newCantidad').value = prod.cantidad || '';
+                document.getElementById('newDescuento').value = prod.descuento || '';
+                document.getElementById('newNota').value = prod.nota || '';
+                // NO se llama a recalculateAndPreviewCurrentProduct() aquí.
+                // Liberar el flag después de una breve espera
+                setTimeout(() => { isProgrammaticChange = false; }, 120);
+            }
+        }, 100);
+    }
+
+    // Utilidades para resumen de materiales y medidas
+    function abbreviateMaterial(material) {
+        if (!material) return '';
+        const n = material.toString().trim().toLowerCase();
+        if (n.includes('vinil imprimible')) return 'V.I.';
+        if (n.includes('vinil de corte')) return 'V.C.';
+        if (n.includes('imantado')) return 'IMAN.';
+        if (n.includes('reflectante')) return 'REFL.';
+        if (n.includes('planchas')) return 'PLAN.';
+        if (n.includes('plancha reflectante')) return 'P.R.';
+
+        // Fallback: iniciales de las primeras 2-3 palabras
+        const parts = material.toString().trim().split(/\s+/).slice(0, 3);
+        return parts.map(p => p[0]?.toUpperCase()).filter(Boolean).join('.') + (parts.length ? '.' : '');
+    }
+
+    function summarizeMaterials(productos) {
+        const set = new Set();
+        productos.forEach(p => {
+            const abbr = abbreviateMaterial(p.description);
+            if (abbr) set.add(abbr);
+        });
+        return Array.from(set).join('-') || 'N/A';
+    }
+
+    function summarizeMedidas(productos) {
+        if (!Array.isArray(productos) || productos.length === 0) return 'N/A';
+        if (productos.length === 1) {
+            const aCm = Math.round(parseFloat(productos[0].width) || 0);
+            const lCm = Math.round(parseFloat(productos[0].height) || 0);
+            if (!isFinite(aCm + lCm)) return 'N/A';
+            return `${aCm}cm x ${lCm}cm`;
+        }
+        // Varios productos: lista de áreas en cm² separados por '-'
+        const areas = productos.map(p => {
+            const aCm = (parseFloat(p.width) || 0);
+            const lCm = (parseFloat(p.height) || 0);
+            const area = Math.round(aCm * lCm);
+            return isFinite(area) ? area : 0;
+        });
+        return `${areas.join('-')} cm2`;
+    }
+
+    function computeTotals(productos) {
+        let neto = 0;
+        productos.forEach(p => {
+            const precio = parseFloat(p.precioTotal) || 0;
+            const desc = parseFloat(p.descuento) || 0;
+            neto += (precio - desc);
+        });
+        const iva = neto * 0.19;
+        const total = neto + iva;
+        return { neto, iva, total };
+    }
+
+    function renderTable(data) {
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-gray-400">No se encontraron productos.</td></tr>`;
+            return;
+        }
+        // Obtener el rol del usuario para ocultar botones
+        const userRole = sessionStorage.getItem('userRole');
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-700 hover:bg-gray-700 transition duration-200';
+
+            const productos = item.quote_items || [];
+            
+            // Obtener los nombres de los grupos de materiales (secciones) para esta cotización
+            const groupNames = new Set();
+            if (Array.isArray(productos) && productos.length > 0) {
+                productos.forEach(p => {
+                    let sectionName = null;
+                    
+                    // Primero, intentar obtener desde el product_id (método preferido)
+                    if (p.product_id && allCatalogData.products.length > 0 && allCatalogData.sections.length > 0) {
+                        const product = allCatalogData.products.find(prod => String(prod.id) === String(p.product_id));
+                        if (product && product.section_id) {
+                            const section = allCatalogData.sections.find(s => String(s.id) === String(product.section_id));
+                            if (section) {
+                                sectionName = section.title;
+                            }
+                        }
+                    }
+                    
+                    // Si no se encontró desde product_id, usar el campo description (que ahora contiene el nombre de la sección)
+                    if (!sectionName && p.description && p.description.trim() !== '' && !p.description.includes('Seleccione') && !p.description.includes('Producto')) {
+                        sectionName = p.description.trim();
+                    }
+                    
+                    if (sectionName) {
+                        groupNames.add(sectionName);
+                    }
+                });
+            }
+            
+            let displayMaterial;
+            if (groupNames.size > 0) {
+                displayMaterial = Array.from(groupNames).join(', ');
+            } else {
+                // Fallback si no se encuentra el grupo, se muestra la descripción del producto
+                displayMaterial = productos.length > 1 ? summarizeMaterials(productos) : (productos[0]?.description || 'N/A');
+            }
+
+            let displayMedida = 'N/A';
+            if (productos.length === 1) {
+                const p = productos[0];
+                displayMedida = `${p.width || '?'}cm x ${p.height || '?'}cm`;
+            } else if (productos.length > 1) {
+                displayMedida = summarizeMedidas(productos);
+            }
+
+            const hasOtData = productos.some(p => p.ot_image_url || p.ot_description);
+            const fecha = new Date(item.created_at).toLocaleDateString('es-CL');
+            const notaPrincipal = productos.length > 0 ? (productos[0].notes || '') : '';
+
+            row.innerHTML = `
+                <td class="py-3 px-4 text-center">${item.quote_number}</td>
+                <td class="py-3 px-4 text-center">${item.clients?.name || 'N/A'}</td>
+                <td class="py-3 px-4 text-center">${displayMaterial}</td>
+                <td class="py-3 px-4 text-center">${(item.total || 0).toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</td>
+                <td class="py-3 px-4 text-center">${displayMedida}</td>
+                <td class="py-3 px-4 text-center">
+                    <div class="w-4 h-4 rounded-full mx-auto ${hasOtData ? 'bg-red-500' : 'bg-black'} cursor-pointer ot-row-btn" data-id="${item.id}"></div>
+                </td> 
+                <td class="py-3 px-4 text-center">${fecha}</td>
+                <td class="py-3 px-4 text-center">${notaPrincipal}</td>
+                <td class="py-3 px-4 text-center flex items-center space-x-2 justify-center">
+                    <button class="ot-row-btn text-purple-400 hover:text-purple-300" data-id="${item.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                    </button>
+                    ${userRole === 'gerente' ? `
+                    <button class="delete-btn text-red-500" data-id="${item.id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.334.334.11.83.11 1.344v14.076a2.25 2.25 0 01-2.25 2.25H6.75a2.25 2.25 0 01-2.25-2.25V6.75c0-.514-.22-1.01-.555-1.345l-.49-1.347A2.25 2.25 0 015.625 2.25h12.75c1.24 0 2.25 1.01 2.25 2.25v2.25zM4.5 9h15" />
+                        </svg>
+                    </button>
+                    ` : ''}
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Función para obtener el siguiente número de cotización consultando directamente la BD
+    async function getNextQuoteNumber() {
+        try {
+            // Consultar directamente la base de datos para obtener el máximo quote_number
+            const { data, error } = await supabase
+                .from('quotes')
+                .select('quote_number')
+                .order('quote_number', { ascending: false })
+                .limit(1);
+            
+            if (error) {
+                console.error('Error obteniendo número de cotización:', error);
+                return 1; // En caso de error, empezar desde 1
+            }
+            
+            // Si hay datos y el quote_number es válido, sumar 1
+            if (data && data.length > 0 && data[0].quote_number) {
+                const maxNumber = parseInt(data[0].quote_number) || 0;
+                return maxNumber + 1;
+            }
+            
+            // Si no hay registros, empezar desde 1
+            return 1;
+        } catch (e) {
+            console.error('Error en getNextQuoteNumber:', e);
+            return 1; // En caso de error, empezar desde 1
+        }
+    }
+
+    async function showPreview() {
+        // Guardar el producto actual antes de mostrar la previsualización
+        guardarProductoActual();
+        
+        // Asegurarse de que todos los productos tengan sus datos actualizados
+        productosCotizacion.forEach((prod, idx) => {
+            // Si el producto no tiene productName pero tiene sectionId, calcularlo
+            if (!prod.productName && prod.sectionId && prod.ancho && prod.largo) {
+                const bestProduct = findBestProductForSection(prod.sectionId, prod.ancho, prod.largo);
+                if (bestProduct) {
+                    prod.productName = `${bestProduct.nombre_producto} (${bestProduct.medida || 'N/A'})`;
+                    if (!prod.productId) {
+                        prod.productId = bestProduct.id;
+                    }
+                }
+            }
+            // Si el producto tiene productId pero no productName, intentar obtenerlo del catálogo
+            if (!prod.productName && prod.productId && allCatalogData.products.length > 0) {
+                const productoCatalogo = allCatalogData.products.find(p => String(p.id) === String(prod.productId));
+                if (productoCatalogo) {
+                    prod.productName = `${productoCatalogo.nombre_producto} (${productoCatalogo.medida || 'N/A'})`;
+                }
+            }
+        });
+        
+        sidebar.classList.remove('active');
+        editSidebar.classList.remove('active');
+        previewSidebar.classList.add('active');
+        document.body.classList.remove('body-two-panels');
+
+        // --- CORRECCIÓN: Cálculo del número de cotización consultando directamente la BD ---
+        // Esto asegura que siempre se obtenga el número correcto, incluso después de borrar todos los registros
+        const isEditing = !!currentEditingId;
+        
+        // Si se está editando, mantener el número original; si no, obtener el siguiente número
+        let quoteNumber;
+        if (isEditing) {
+            // Al editar, usar el número de cotización existente
+            const existingQuote = allQuotesData.find(p => p.id === currentEditingId);
+            quoteNumber = existingQuote?.quote_number || await getNextQuoteNumber();
+        } else {
+            // Al crear nuevo, obtener el siguiente número disponible
+            quoteNumber = await getNextQuoteNumber();
+        }
+
+        const data = {
+            id: isEditing ? currentEditingId : undefined,
+            client: {
+                name: newEmpresaInput.value,
+                rut: newRutInput.value,
+                phone: newTelefonoInput.value,
+                contact_person: newContactoInput.value,
+            },
+            correo: newCorreoInput.value,
+            productos: productosCotizacion.filter(prod => (prod.productName || prod.productId) && (prod.cantidad || prod.cantidad === '0')),
+            fecha: new Date().toLocaleDateString('es-CL'),
+            receivedTime: (new Date()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            quoteNumber: quoteNumber
+        };
+        
+        // Calcular totales de todos los productos
+        let subtotalBruto = 0;
+        let descuentoTotal = 0;
+        data.productos.forEach(prod => {
+            const precioProducto = parseFloat(prod.precioTotal) || 0;
+            subtotalBruto += precioProducto;
+            descuentoTotal += precioProducto * (parseFloat(prod.descuento) || 0) / 100;
+        });
+        
+        const neto = subtotalBruto - descuentoTotal;
+        const iva = neto * 0.19;
+        const totalConIVA = neto + iva;
+
+    document.getElementById('previewQuoteNumber').textContent = data.quoteNumber;
+    document.getElementById('previewEmpresa').textContent = data.client.name;
+    document.getElementById('previewRut').textContent = data.client.rut;
+    // Cabecera fija y datos de contacto
+    const correoHeaderEl = document.getElementById('previewCorreoHeader');
+    const contactoHeaderEl = document.getElementById('previewContactoHeader');
+    // Correo fijo en la cabecera según solicitud
+    if (correoHeaderEl) correoHeaderEl.textContent = 'silvestredilan@gmail.com';
+    // Mostrar número de celular fijo en la cabecera según solicitud
+    if (contactoHeaderEl) contactoHeaderEl.textContent = '+56 9 57722032';
+    document.getElementById('previewContacto').textContent = data.client.contact_person;
+    document.getElementById('previewDate').textContent = data.fecha;
+
+        const previewTableBody = document.getElementById('previewTableBody');
+        previewTableBody.innerHTML = '';
+        
+        // Mostrar todos los productos en la tabla (lista numerada)
+        data.productos.forEach((prod, idx) => {
+            const totalProducto = parseFloat(prod.precioTotal) || 0;
+            const descuentoMonto = totalProducto * (parseFloat(prod.descuento) || 0) / 100;
+            const valorUnitario = parseFloat(prod.cantidad) > 0 ? ((totalProducto - descuentoMonto) / parseFloat(prod.cantidad)) : 0;
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Lógica mejorada para obtener el nombre del grupo de materiales (sección)
+            let nombreGrupo = null;
+            
+            // Primero, intentar obtener desde sectionId si está disponible directamente (más confiable)
+            if (prod.sectionId && allCatalogData.sections.length > 0) {
+                const seccion = allCatalogData.sections.find(s => String(s.id) === String(prod.sectionId));
+                if (seccion) {
+                    nombreGrupo = seccion.title;
+                }
+            }
+            
+            // Si no se encontró desde sectionId, buscar desde productId
+            if (!nombreGrupo && prod.productId && allCatalogData.products.length > 0 && allCatalogData.sections.length > 0) {
+                const productoCatalogo = allCatalogData.products.find(p => String(p.id) === String(prod.productId));
+                if (productoCatalogo && productoCatalogo.section_id) {
+                    const seccion = allCatalogData.sections.find(s => String(s.id) === String(productoCatalogo.section_id));
+                    if (seccion) {
+                        nombreGrupo = seccion.title;
+                    }
+                }
+            }
+            
+            // Fallback: usar productName o description sin el paréntesis
+            if (!nombreGrupo) {
+                const productName = (prod.productName || '').split('(')[0].trim();
+                const description = (prod.description || '').split(' de ')[0].trim();
+                nombreGrupo = productName || description || 'Producto';
+            }
+            
+            const descripcionFinal = `${nombreGrupo} de ${prod.ancho}cm x ${prod.largo}cm`;
+            // --- FIN DE LA CORRECCIÓN ---
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${idx + 1}</td>
+                <td>${prod.cantidad || 0}</td>
+                <td>${descripcionFinal}</td>
+                <td>${descuentoMonto.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+                <td>${valorUnitario.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+                <td>${totalProducto.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+            `;
+            previewTableBody.appendChild(row);
+        });
+
+        // Populate per-product notes as a numbered list
+        const notasListEl = document.getElementById('previewNotasList');
+        if (notasListEl) {
+            notasListEl.innerHTML = '';
+            if (Array.isArray(data.productos) && data.productos.length > 0) {
+                data.productos.forEach((p, i) => {
+                    const notaText = p.nota ? p.nota.toString() : '(sin nota)';
+                    const item = document.createElement('li');
+                    item.textContent = notaText;
+                    notasListEl.appendChild(item);
+                });
+            }
+        }
+        document.getElementById('previewSubtotal').textContent = subtotalBruto.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewDescuentoTotal').textContent = descuentoTotal.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewNeto').textContent = neto.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewIVA').textContent = iva.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewTotal').textContent = totalConIVA.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+
+        // Mostrar botones de editar y guardar para una nueva previsualización
+        document.getElementById('editPreviewBtn').style.display = 'inline-block';
+        document.getElementById('saveQuoteBtn').style.display = 'inline-block';
+        document.getElementById('otBtn').style.display = 'inline-block'; // <-- CORRECCIÓN: Asegurarse de que el botón O.T. sea visible
+
+        previewSidebar.dataset.quoteData = JSON.stringify(data);
+    }
+
+    function openOtForRecord(record, id) {
+        // Cierra otros paneles y prepara la previsualización desde un registro existente
+        sidebar.classList.remove('active');
+        editSidebar.classList.remove('active');
+        otSidebar.classList.remove('active');
+
+        // Normalizar productos
+        const productos = (Array.isArray(record.quote_items) && record.quote_items.length > 0)
+            ? record.quote_items.map(p => ({
+                // --- INICIO DE LA CORRECCIÓN ---
+                productId: p.product_id, // <-- CORRECCIÓN: Asegurarse de que el ID del producto esté disponible.
+                productName: p.description || '',
+                ancho: p.width || '',
+                largo: p.height || '',
+                cantidad: p.quantity || '',
+                precioTotal: p.total_price || '',
+                descuento: p.discount || 0,
+                nota: p.notes || '', // Añadimos los datos de OT para que estén disponibles
+                ot_description: p.ot_description,
+                ot_image_url: p.ot_image_url
+                // --- FIN DE LA CORRECCIÓN ---
+            }))
+            : [{
+                material: record.material || '',
+                ancho: record.width || '',
+                largo: record.height || '',
+                cantidad: record.cantidad || '',
+                precioTotal: record.precioTotal || '',
+                descuento: record.discount || 0,
+                nota: record.nota || ''
+            }];
+
+        const quoteNumber = record.quote_number || '';
+
+        const data = {
+            empresa: record.clients?.name || '',
+            client: { // Recreamos la estructura que espera la previsualización
+                name: record.clients?.name || '',
+                rut: record.clients?.rut || '',
+                phone: record.clients?.phone || '',
+                contact_person: record.clients?.contact_person || ''
+            },
+            correo: record.clients?.email || '',
+            id: id, // Pasar el ID del registro
+            productos,
+            fecha: record.fecha || new Date().toLocaleDateString('es-CL'),
+            quoteNumber
+        };
+
+        // Totales
+        let subtotalBruto = 0;
+        let descuentoTotal = 0;
+        data.productos.forEach(prod => {
+            const precioProducto = parseFloat(prod.precioTotal) || 0;
+            subtotalBruto += precioProducto;
+            descuentoTotal += precioProducto * (parseFloat(prod.descuento) || 0) / 100;
+        });
+        const neto = subtotalBruto - descuentoTotal;
+        const iva = neto * 0.19;
+        const totalConIVA = neto + iva;
+
+        // Poblar vista de cotización
+        previewSidebar.classList.add('active');
+        document.getElementById('previewQuoteNumber').textContent = data.quoteNumber;
+        document.getElementById('previewEmpresa').textContent = data.client.name;
+        document.getElementById('previewRut').textContent = data.client.rut;
+        const correoHeaderEl2 = document.getElementById('previewCorreoHeader');
+        const contactoHeaderEl2 = document.getElementById('previewContactoHeader');
+        if (correoHeaderEl2) correoHeaderEl2.textContent = 'silvestredilan@gmail.com';
+        if (contactoHeaderEl2) contactoHeaderEl2.textContent = '+56 9 57722032';
+        document.getElementById('previewContacto').textContent = data.client.contact_person;
+        document.getElementById('previewDate').textContent = data.fecha;
+
+        const previewTableBody = document.getElementById('previewTableBody');
+        previewTableBody.innerHTML = '';
+        data.productos.forEach((prod, i) => {
+            const totalProducto = parseFloat(prod.precioTotal) || 0;
+            const descuentoMonto = totalProducto * (parseFloat(prod.descuento) || 0) / 100;
+            const valorUnitario = parseFloat(prod.cantidad) > 0 ? ((totalProducto - descuentoMonto) / parseFloat(prod.cantidad)) : 0;
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Lógica mejorada para obtener el nombre del grupo de materiales (sección)
+            let nombreGrupo = null;
+            
+            // Primero, intentar obtener desde sectionId si está disponible directamente (más confiable)
+            if (prod.sectionId && allCatalogData.sections.length > 0) {
+                const seccion = allCatalogData.sections.find(s => String(s.id) === String(prod.sectionId));
+                if (seccion) {
+                    nombreGrupo = seccion.title;
+                }
+            }
+            
+            // Si no se encontró desde sectionId, buscar desde productId
+            if (!nombreGrupo && prod.productId && allCatalogData.products.length > 0 && allCatalogData.sections.length > 0) {
+                const productoCatalogo = allCatalogData.products.find(p => String(p.id) === String(prod.productId));
+                if (productoCatalogo && productoCatalogo.section_id) {
+                    const seccion = allCatalogData.sections.find(s => String(s.id) === String(productoCatalogo.section_id));
+                    if (seccion) {
+                        nombreGrupo = seccion.title;
+                    }
+                }
+            }
+            
+            // Fallback: usar productName o description sin el paréntesis
+            if (!nombreGrupo) {
+                const productName = (prod.productName || '').split('(')[0].trim();
+                const description = (prod.description || '').split(' de ')[0].trim();
+                nombreGrupo = productName || description || 'Producto';
+            }
+            
+            const descripcionFinal = `${nombreGrupo} de ${prod.ancho}cm x ${prod.largo}cm`;
+            // --- FIN DE LA CORRECCIÓN ---
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${prod.cantidad || '0'}</td>
+                <td>${descripcionFinal}</td>
+                <td>${descuentoMonto.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+                <td>${valorUnitario.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+                <td>${totalProducto.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</td>
+            `;
+            previewTableBody.appendChild(row);
+        });
+        // Update per-product notes list (same logic as above)
+        const notasListEl2 = document.getElementById('previewNotasList');
+        if (notasListEl2) {
+            notasListEl2.innerHTML = '';
+            if (Array.isArray(data.productos) && data.productos.length > 0) {
+                data.productos.forEach((p, i) => {
+                    const notaText = p.nota ? p.nota.toString() : '(sin nota)';
+                    const item = document.createElement('li');
+                    item.textContent = notaText;
+                    notasListEl2.appendChild(item);
+                });
+            }
+        }
+        document.getElementById('previewSubtotal').textContent = subtotalBruto.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewDescuentoTotal').textContent = descuentoTotal.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewNeto').textContent = neto.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewIVA').textContent = iva.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+        document.getElementById('previewTotal').textContent = totalConIVA.toLocaleString('es-CL', { maximumFractionDigits: 0 });
+
+        previewSidebar.dataset.quoteData = JSON.stringify(data);
+        previewSidebar.dataset.recordId = id; // Guardar el ID del registro para poder actualizarlo
+
+        // Verificar si hay O.T. registrada
+        const hasOtData = productos.some(p => p.ot_image_url || p.ot_description);
+
+        // Ocultar el botón de editar al abrir desde un registro existente
+        document.getElementById('editPreviewBtn').style.display = 'none';
+        document.getElementById('saveQuoteBtn').style.display = 'none'; // También ocultar guardar
+
+        // Pasar el registro completo a la función showOtPanel
+        const otBtn = document.getElementById('otBtn');
+        if (otBtn) {
+            // Mostramos el botón de O.T. para que el usuario pueda abrir el panel
+            otBtn.style.display = 'inline-block';
+        }
+        // para que pueda acceder a record.otData
+        showOtPanel(record, hasOtData);
+    }
+
+    function showOtPanel(record = null, hasOtData = false) {
+        if (!previewSidebar.classList.contains('active')) {
+            showPreview();
+        }
+
+        const data = JSON.parse(previewSidebar.dataset.quoteData);
+        const recordId = previewSidebar.dataset.recordId;
+
+        // Usar el registro guardado si existe, si no, los datos de la previsualización actual
+        const quoteData = record || data; 
+
+        document.getElementById('otEmpresa').textContent = quoteData.clients?.name || data.client?.name || '';
+        document.getElementById('otRut').textContent = quoteData.clients?.rut || data.client?.rut || '';
+        document.getElementById('otContacto').textContent = quoteData.clients?.contact_person || data.client?.contact_person || '';
+        document.getElementById('otReceivedDate').textContent = new Date(quoteData.created_at || data.fecha).toLocaleDateString('es-CL');
+        document.getElementById('otReceivedTime').textContent = new Date(quoteData.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('otNumber').textContent = quoteData.quote_number || data.quoteNumber;
+
+        // --- Lógica para habilitar/deshabilitar campos según si hay O.T. registrada ---
+        const deliveryInput = document.getElementById('otDeliveryDate');
+        const receptionistInput = document.getElementById('otReceptionist');
+        const saveOtBtn = document.getElementById('saveOtBtn');
+        const isFromRecord = !!record;
+
+        // Si es un registro existente pero NO tiene O.T., permitir editar
+        if (isFromRecord && !hasOtData && recordId) {
+            deliveryInput.value = record.delivery_date || '';
+            receptionistInput.value = record.receptionist || '';
+            deliveryInput.readOnly = false;
+            receptionistInput.readOnly = false;
+            deliveryInput.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            receptionistInput.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            // Mostrar botón de guardar O.T.
+            if (saveOtBtn) {
+                saveOtBtn.style.display = 'inline-block';
+                saveOtBtn.dataset.recordId = recordId;
+            }
+        } else if (isFromRecord && hasOtData) {
+            // Si ya tiene O.T., bloquear campos
+            deliveryInput.value = record.delivery_date || '';
+            receptionistInput.value = record.receptionist || '';
+            deliveryInput.readOnly = true;
+            receptionistInput.readOnly = true;
+            deliveryInput.classList.add('bg-gray-600', 'cursor-not-allowed');
+            receptionistInput.classList.add('bg-gray-600', 'cursor-not-allowed');
+            if (saveOtBtn) saveOtBtn.style.display = 'none';
+        } else {
+            // Si no es un registro (nueva cotización), permitir editar
+            deliveryInput.readOnly = false;
+            receptionistInput.readOnly = false;
+            deliveryInput.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            receptionistInput.classList.remove('bg-gray-600', 'cursor-not-allowed');
+            if (saveOtBtn) saveOtBtn.style.display = 'none';
+        }
+
+        // 2. Limpiar y reconstruir la grilla de productos para la O.T.
+        const otGridContainer = document.getElementById('otGridContainer');
+        otGridContainer.innerHTML = `
+            <div class="ot-grid-header">CANT.</div>
+            <div class="ot-grid-header">GRÁFICA</div>
+            <div class="ot-grid-header">DESCRIPCIÓN</div>
+        `;
+        
+        // Usar los productos del registro guardado (quote_items) o los de la previsualización (productos)
+        const productosOT = record ? (record.quote_items || []) : data.productos;
+
+        // Determinar si los campos deben estar habilitados
+        const canEditOtFields = (isFromRecord && !hasOtData && recordId) || !isFromRecord;
+
+        productosOT.forEach((producto, index) => {
+            const cantidadCell = document.createElement('div');
+            cantidadCell.className = 'ot-grid-cell';
+            cantidadCell.textContent = producto.quantity || producto.cantidad || '0';
+
+            const graficaCell = document.createElement('div');
+            graficaCell.className = 'ot-grid-cell';
+            // Permitimos subir una imagen para cada producto (habilitado si no hay O.T. o es nueva)
+            graficaCell.innerHTML = `
+                <label for="otGraficaInput-${index}" style="width:100%;cursor:${canEditOtFields ? 'pointer' : 'default'};">
+                    <input type="file" id="otGraficaInput-${index}" accept="image/*" style="display:none;" data-product-index="${index}" ${canEditOtFields ? '' : 'disabled'}>
+                    <div id="otGraficaPreview-${index}" style="width:100%;min-height:3.5rem;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0.5rem;">
+                        ${producto.ot_image_url ? `<img src="${producto.ot_image_url}" style="max-width:100%;max-height:120px;border-radius:8px;">` : '<span class="text-xs text-gray-400">Haz clic para subir imagen</span>'}
+                    </div>
+                </label>
+            `;
+
+            const descripcionCell = document.createElement('div');
+            descripcionCell.className = 'ot-grid-cell !p-0';
+            const productNote = producto.notes || producto.nota || '';
+            const productName = producto.description || producto.productName || '';
+            const productWidth = producto.width || producto.ancho || '?';
+            const productHeight = producto.height || producto.largo || '?';
+            descripcionCell.innerHTML = `
+                <div class="w-full h-full" style="display: grid; grid-template-rows: auto auto 1fr;">
+                    <div class="ot-descripcion-producto text-left p-2 border-b border-gray-600 flex items-center" style="font-size:0.85rem; line-height:1.1;">
+                        ${(productName).split('(')[0].trim()} de ${productWidth}cm x ${productHeight}cm
+                    </div>
+                    <div class="ot-product-note text-left text-sm p-2 text-gray-300 border-b border-gray-700" style="overflow:auto;">
+                        ${productNote ? productNote : '<span class="text-gray-500">(sin nota)</span>'}
+                    </div>
+                    <div class="p-1 h-full">
+                        <textarea id="otDescripcionInput-${index}" class="text-gray-100 w-full h-full bg-transparent outline-none focus:outline-none resize-none p-1" placeholder="Añadir descripción para la O.T..." style="box-sizing:border-box; font-size:0.8rem;" ${canEditOtFields ? '' : 'readonly'}>${producto.ot_description || ''}</textarea>
+                    </div>
+                </div>
+            `;
+
+            otGridContainer.appendChild(cantidadCell);
+            otGridContainer.appendChild(graficaCell);
+            otGridContainer.appendChild(descripcionCell);
+
+            // Event listener for image preview
+            const graficaInput = graficaCell.querySelector(`#otGraficaInput-${index}`);
+            graficaInput.addEventListener('change', function() {
+                const preview = document.getElementById(`otGraficaPreview-${index}`);
+                if (!preview) return;
+                preview.innerHTML = '';
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.cssText = 'max-width:100%; max-height:120px; border-radius:8px;';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // 3. Mostrar el panel de O.T. y añadir la clase para el layout de dos paneles
+        document.body.classList.add('body-two-panels');
+        otSidebar.classList.add('active');
+        previewSidebar.classList.add('active');
+    }
+    
+    function handleNewSaleFormSubmit(e) {
+        e.preventDefault();
+        showPreview();
+    }
+
+    // Listener para imprimir OT (no cerrar barras; usa flujo seguro centralizado)
+    document.getElementById('printOtBtn').addEventListener('click', () => {
+        safePrintOt();
+    });
+    
+    function showCompanySuggestions(inputValue) {
+        autocompletePopup.innerHTML = '';
+        if (inputValue.length < 2) {
+            autocompletePopup.classList.add('hidden');
+            return;
+        }
+
+        // --- CORRECCIÓN: Buscar directamente en `allClientsData` que ya viene de la tabla `clients` ---
+        const matches = allClientsData.filter(client => client.name && client.name.toLowerCase().includes(inputValue.toLowerCase()));
+        console.debug('autocomplete: input=', inputValue, 'clients=', allClientsData.length, 'matches=', matches.length);
+
+        if (matches.length > 0) {
+            matches.slice(0, 5).forEach(client => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                // --- CORRECCIÓN: Usar `client.name` y `client.phone` ---
+                suggestionItem.innerHTML = `
+                    <div class="font-bold">${client.name}</div>
+                    <div class="text-xs text-gray-400">R.U.T.: ${client.rut || 'N/A'}</div>
+                    <div class="text-xs text-gray-400">Teléfono: ${client.phone || 'N/A'}</div>
+                `;
+                suggestionItem.addEventListener('click', () => {
+                    // --- CORRECCIÓN: Rellenar los campos con los datos correctos del cliente ---
+                    newEmpresaInput.value = client.name;
+                    newRutInput.value = client.rut || '';
+                    newTelefonoInput.value = client.phone || '';
+                    newCorreoInput.value = client.email || '';
+                    newContactoInput.value = client.contact_person || '';
+                    autocompletePopup.classList.add('hidden');
+                    autocompletePopup.innerHTML = '';
+                    newRutInput.focus();
+                });
+                autocompletePopup.appendChild(suggestionItem);
+            });
+            // Ahora que los items están en el DOM, calculamos el tamaño y posicionamos el popup
+            // Usamos el popup global ubicado en el <body> y lo colocamos a la izquierda de la barra lateral
+            autocompletePopup.classList.remove('hidden');
+            autocompletePopup.style.zIndex = '9999';
+            autocompletePopup.style.pointerEvents = 'auto';
+            requestAnimationFrame(() => {
+                const popupW = autocompletePopup.offsetWidth || 350;
+                const popupH = autocompletePopup.offsetHeight || 200;
+                const inputRect = newEmpresaInput.getBoundingClientRect();
+                const sidebarRect = sidebar.getBoundingClientRect();
+
+                // Sitúa el popup a la izquierda del sidebar, alineado verticalmente con el input
+                let leftPos = Math.max(8, sidebarRect.left - popupW - 12);
+                let topPos = inputRect.top;
+
+                // Si por alguna razón no cabe a la izquierda, intentar colocarlo a la derecha del sidebar
+                if (leftPos < 8) {
+                    leftPos = Math.min(window.innerWidth - popupW - 8, sidebarRect.right + 12);
+                }
+
+                // Evitar que se salga por abajo
+                if (topPos + popupH > window.innerHeight - 8) {
+                    topPos = Math.max(8, window.innerHeight - popupH - 8);
+                }
+
+                autocompletePopup.style.position = 'fixed';
+                autocompletePopup.style.left = `${leftPos}px`;
+                autocompletePopup.style.top = `${topPos}px`;
+            });
+        } else {
+            autocompletePopup.classList.add('hidden');
+        }
+    }
+
+    // Reposicionar u ocultar popup cuando se redimensiona o se desplaza
+    window.addEventListener('resize', () => autocompletePopup.classList.add('hidden'));
+    window.addEventListener('scroll', () => autocompletePopup.classList.add('hidden'));
+    
+    // --- Lógica de cálculo de precios ---
+    async function loadAllCatalogData() {
+        if (!supabase) return;
+        const { data: categories, error: catError } = await supabase.from('categories').select('id, name');
+        if (catError) {
+            console.error("Error cargando categorías:", catError);
+            return;
+        }
+
+        const { data: sections, error: secError } = await supabase.from('sections').select('id, title, category_id');
+        if (secError) {
+            console.error("Error cargando secciones:", secError);
+            return;
+        }
+
+        const { data: products, error: prodError } = await supabase.from('products').select('id, nombre_producto, medida, presion_m2, section_id');
+        if (prodError) {
+            console.error("Error cargando productos:", prodError);
+            return;
+        }
+
+        // Validar que los productos tengan el campo presion_m2
+        if (products && products.length > 0) {
+            console.log('Productos cargados:', products.length);
+            console.log('Primer producto:', products[0]);
+            if (products[0].presion_m2 === undefined || products[0].presion_m2 === null) {
+                console.warn('⚠️ ADVERTENCIA: El campo presion_m2 no se encontró o está vacío en los productos. Esto puede causar que los cálculos de precio fallen.');
+            }
+        }
+
+        allCatalogData = { categories, sections, products };
+
+        const categorySelect = document.getElementById('newMaterialCategory');
+        while (categorySelect.options.length > 1) categorySelect.remove(1);
+        categories.forEach(cat => {
+            const option = new Option(cat.name, cat.id);
+            categorySelect.add(option);
+        });
+    }
+
+    // When a category is selected, we populate the section select
+    newMaterialCategoryInput.addEventListener('change', (e) => {
+        const selectedCategoryId = e.target.value;
+        const sectionSelect = document.getElementById('newMaterialSection');
+        const productSelect = document.getElementById('newMaterial');
+        
+        // Reset both section and product selects
+        sectionSelect.innerHTML = '<option value="">2. Seleccione un grupo...</option>';
+        productSelect.innerHTML = '<option value="">3. Seleccione un producto...</option>';
+        sectionSelect.style.display = 'none';
+        productSelect.style.display = 'none';
+
+        if (selectedCategoryId && allCatalogData.sections) {
+            // Filter sections by category
+            const sectionsInCategory = allCatalogData.sections.filter(s => 
+                String(s.category_id) === String(selectedCategoryId)
+            );
+            
+            sectionsInCategory.forEach(section => {
+                const option = new Option(section.title, section.id);
+                sectionSelect.add(option);
+            });
+            
+            // Show the section selector
+            if (sectionsInCategory.length > 0) {
+                sectionSelect.style.display = 'block';
+            }
+        }
+    });
+
+    // When a section is selected, we populate the product select
+    newMaterialSectionInput.addEventListener('change', (e) => {
+        const selectedSectionId = e.target.value;
+        const productSelect = document.getElementById('newMaterial');
+        productSelect.innerHTML = '<option value="">3. Seleccione un producto...</option>'; // Reset
+
+        if (selectedSectionId && allCatalogData.products) {
+            // Filter products by section
+            const productsInSection = allCatalogData.products.filter(p => 
+                String(p.section_id) === String(selectedSectionId)
+            );
+            
+            productsInSection.forEach(p => {
+                const option = new Option(`${p.nombre_producto} (${p.medida || 'N/A'})`, p.id);
+                productSelect.add(option);
+            });
+            
+            // Show the product selector
+            // Se comenta la línea para que el selector de producto permanezca oculto
+            // if (productsInSection.length > 0) { productSelect.style.display = 'block'; }
+        } else {
+            productSelect.style.display = 'none';
+        }
+    });
+
+    // --- Lógica de búsqueda del mejor producto (restaurada) ---
+    function parseMedidaString(medidaStr) {
+        if (!medidaStr || typeof medidaStr !== 'string') return null;
+        const s = medidaStr.toLowerCase().trim();
+        const cleaned = s
+      .replace(/cm\.?|cms\.?|centimetros|centímetros|mm\.?|m2|m²|metros|metro/g, '')
+      .replace(/×|x|X/g, 'x')
+      .replace(/\s+/g, ' ');
+
+    // Buscar patrones tipo "desde 10x20 hasta 30x40"
+    const rangeMatch = cleaned.match(/desde\s*(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(?:hasta|a|-)\s*(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/);
+    if (rangeMatch) {
+        return { type: 'range', w: parseFloat(rangeMatch[1]), h: parseFloat(rangeMatch[2]), w2: parseFloat(rangeMatch[3]), h2: parseFloat(rangeMatch[4]) };
+    }
+
+    // Buscar "hasta 50x100" o "desde 10x20"
+    const boundMatch = cleaned.match(/(?:hasta|desde)\s*(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/);
+    if (boundMatch) {
+        const prefix = cleaned.includes('desde') ? 'desde' : 'hasta';
+        return { type: prefix, w: parseFloat(boundMatch[1]), h: parseFloat(boundMatch[2]) };
+    }
+
+    // Match exacto "5x100" o "10 x 20"
+    const exactMatch = cleaned.match(/^(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/);
+    if (exactMatch) {
+        return { type: 'exact', w: parseFloat(exactMatch[1]), h: parseFloat(exactMatch[2]) };
+    }
+
+    return null;
+    }
+
+  // --- CORRECCIÓN: Lógica de búsqueda de producto mejorada para entender dimensiones por separado ---
+    function findBestProductForSection(sectionId, anchoCm, largoCm) {
+        const targetAncho = parseFloat(anchoCm) || 0;
+        const targetLargo = parseFloat(largoCm) || 0;
+        if (!sectionId || targetAncho <= 0 || targetLargo <= 0) {
+            return null;
+        }
+
+        const targetArea = targetAncho * targetLargo;
+
+        const candidates = allCatalogData.products
+            .filter(p => String(p.section_id) === String(sectionId))
+            .map(product => {
+                const parsed = parseMedidaString(product.medida);
+                const medidaStr = (product.medida || '').toLowerCase();
+                let ruleType = 'exact';
+                if (medidaStr.includes('desde')) ruleType = 'desde'; else if (medidaStr.includes('hasta')) ruleType = 'hasta';
+
+                const w = parsed && parsed.w ? parsed.w : 0;
+                const h = parsed && parsed.h ? parsed.h : 0;
+                const w2 = parsed && parsed.w2 ? parsed.w2 : null;
+                const h2 = parsed && parsed.h2 ? parsed.h2 : null;
+                const area = w && h ? w * h : 0;
+
+                return { product, parsed, ruleType, w, h, w2, h2, area };
+            })
+            .filter(c => (c.w && c.h) || (c.parsed && c.parsed.type === 'range'));
+
+        if (candidates.length === 0) return null;
+
+        function coversDimensions(c) {
+            const pw = c.w;
+            const ph = c.h;
+            if (!pw || !ph) return false;
+            const fitsNoRotate = targetAncho <= pw && targetLargo <= ph;
+            const fitsRotate = targetAncho <= ph && targetLargo <= pw;
+            return fitsNoRotate || fitsRotate;
+        }
+
+        const exactFits = [];
+        const rangeFits = [];
+        const hastaFits = [];
+        const desdeFits = [];
+
+        candidates.forEach(c => {
+             if (!c.parsed) return;
+             if (c.parsed.type === 'range') {
+                 const minW = Math.min(c.w, c.w2);
+                 const maxW = Math.max(c.w, c.w2);
+                 const minH = Math.min(c.h, c.h2);
+                 const maxH = Math.max(c.h, c.h2);
+                 const fits = (targetAncho >= minW && targetAncho <= maxW && targetLargo >= minH && targetLargo <= maxH) ||
+                              (targetAncho >= minH && targetAncho <= maxH && targetLargo >= minW && targetLargo <= maxW);
+                 if (fits) rangeFits.push(c);
+                 return;
+             }
+             if (c.ruleType === 'hasta') {
+                 if (coversDimensions(c)) hastaFits.push(c);
+                 return;
+             }
+             if (c.ruleType === 'desde') {
+                 const minFitsNoRotate = targetAncho >= c.w && targetLargo >= c.h;
+                 const minFitsRotate = targetAncho >= c.h && targetLargo >= c.w;
+                 if (minFitsNoRotate || minFitsRotate) desdeFits.push(c);
+                 return;
+             }
+             if (coversDimensions(c)) exactFits.push(c);
+        });
+
+        function pickBest(list) {
+            if (!list || list.length === 0) return null;
+            list.sort((a, b) => {
+                const aNoRot = targetAncho <= a.w && targetLargo <= a.h;
+                const bNoRot = targetAncho <= b.w && targetLargo <= b.h;
+                if (aNoRot && !bNoRot) return -1;
+                if (!aNoRot && bNoRot) return 1;
+                return Math.abs(a.area - targetArea) - Math.abs(b.area - targetArea);
+            });
+            return list[0].product;
+        }
+
+        let bestFit = pickBest(exactFits) || pickBest(rangeFits) || pickBest(hastaFits);
+        if (bestFit) return bestFit;
+
+        if (desdeFits.length > 0) {
+            desdeFits.sort((a, b) => Math.abs(a.area - targetArea) - Math.abs(b.area - targetArea));
+            return desdeFits[0].product;
+        }
+
+        return null;
+    }
+
+    // --- CORRECCIÓN: La función ahora busca el mejor producto automáticamente ---
+    function calcularPrecioProducto(productOrSectionId, anchoCm, largoCm, cantidad, sectionId = null) {
+      if ((!productOrSectionId && !sectionId) || !anchoCm || !largoCm) return 0;
+
+      const anchoNum = parseFloat(anchoCm);
+      const largoNum = parseFloat(largoCm);
+      if (!isFinite(anchoNum) || !isFinite(largoNum) || anchoNum <= 0 || largoNum <= 0) {
+        return 0;
+      }
+
+      const cantidadNum = parseInt(cantidad, 10);
+      const cantidadValida = isFinite(cantidadNum) && cantidadNum > 0 ? cantidadNum : 1;
+      const areaCm2 = anchoNum * largoNum;
+
+      // productOrSectionId puede ser un productId si el usuario seleccionó manualmente.
+      let product = null;
+      if (allCatalogData && Array.isArray(allCatalogData.products)) {
+        product = allCatalogData.products.find(p => String(p.id) === String(productOrSectionId));
+      }
+      
+      // Si no es un productId y tenemos sectionId, buscamos el mejor producto en esa sección
+      if (!product && sectionId) {
+        product = findBestProductForSection(sectionId, anchoNum, largoNum);
+      }
+
+      let precioM2Final = null;
+      
+      if (product) {
+        // Normalizar presion_m2 (aceptar comas como separador decimal, limpiar texto)
+        let precioM2Raw = product.presion_m2;
+        if (precioM2Raw !== undefined && precioM2Raw !== null) {
+          if (typeof precioM2Raw === 'string') {
+            precioM2Raw = precioM2Raw.replace(/\s+/g, '').replace(/\$/g, '').replace(',', '.');
+          }
+          const parsedPrecio = parseFloat(precioM2Raw);
+          if (isFinite(parsedPrecio)) {
+            precioM2Final = parsedPrecio;
+          }
+        }
+        
+        // DEBUG: Log si no se pudo obtener el precio
+        if (!isFinite(precioM2Final)) {
+          console.debug('⚠️ calcularPrecioProducto: No se pudo obtener precio m2 para producto:', {
+            productOrSectionId,
+            sectionId,
+            productName: product.nombre_producto,
+            presion_m2: product.presion_m2,
+            parsedPrecio: parseFloat(precioM2Raw)
+          });
+        }
+      }
+
+      if (!isFinite(precioM2Final)) {
+        console.debug('calcularPrecioProducto: no se pudo determinar precio m2 para', { productOrSectionId, sectionId });
+        return 0;
+      }
+
+      const areaM2 = areaCm2 / 10000;
+      const total = areaM2 * precioM2Final * cantidadValida;
+      console.debug(`Cálculo: ${areaM2}m² × $${precioM2Final}/m² × ${cantidadValida} = $${total}`);
+      return total;
+    }
+
+    // --- NUEVA FUNCIÓN CENTRAL PARA RECALCULAR ---
+    function recalculateAndPreviewCurrentProduct() {
+        // Ignorar recálculos si los campos están siendo actualizados programáticamente
+        if (isProgrammaticChange) {
+            console.debug('Ignorando recálculo: cambio programático en curso');
+            return;
+        }
+        const ancho = newAnchoInput.value;
+        const largo = newLargoInput.value;
+        const cantidad = newCantidadInput.value;
+        const sectionId = newMaterialSectionInput.value;
+        
+        // 1. Priorizar el producto seleccionado manualmente por el usuario.
+        let selectedProductId = newMaterialInput.value || null;
+        let selectedProduct = null;
+        if (selectedProductId && allCatalogData && Array.isArray(allCatalogData.products)) {
+            selectedProduct = allCatalogData.products.find(p => String(p.id) === String(selectedProductId)) || null;
+        }
+
+        // 2. Si no hay selección manual, buscar el mejor producto automáticamente.
+        let bestProduct = null;
+        if (!selectedProduct && sectionId && ancho && largo) {
+            bestProduct = findBestProductForSection(sectionId, ancho, largo);
+        }
+
+        // 3. Determinar qué producto usar para el cálculo (el manual tiene prioridad).
+        const productToUse = selectedProduct || bestProduct || null;
+        const productId = productToUse ? productToUse.id : null;
+        const precioTotal = calcularPrecioProducto(productId, ancho, largo, cantidad, sectionId);
+
+        // 4. Actualizar el estado del producto actual en la cotización.
+        if (productosCotizacion[productoActual]) {
+            productosCotizacion[productoActual].productId = productId || '';
+            
+            if (selectedProduct && newMaterialInput.options && newMaterialInput.selectedIndex >= 0) {
+                productosCotizacion[productoActual].productName = newMaterialInput.options[newMaterialInput.selectedIndex].text;
+            } else if (productToUse) {
+                productosCotizacion[productoActual].productName = `${productToUse.nombre_producto || ''} (${productToUse.medida || 'N/A'})`;
+            } else {
+                productosCotizacion[productoActual].productName = 'Producto no encontrado';
+            }
+            productosCotizacion[productoActual].precioTotal = precioTotal;
+        }
+
+        // 5. Log para depuración. El precio se guarda en el estado y se usará en `showPreview`.
+        console.log(`Producto encontrado: ${productosCotizacion[productoActual].productName}, Precio: ${precioTotal}`);
+    }
+
+    async function init() {
+        if (!supabase) return;
+
+        // Cargar datos iniciales
+        await Promise.all([
+            loadAllCatalogData(),
+            loadAllClientsData(),
+            loadAllQuotes()
+        ]);
+
+        // Suscribirse a cambios en tiempo real
+        supabase.channel('public:quotes_and_clients')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'quotes' }, loadAllQuotes)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, loadAllClientsData)
+            .subscribe();
+
+        // Inicializar pestañas de productos
+        renderProductTabs();
+        cargarProductoActual();
+
+        // --- AÑADIR EVENT LISTENERS PARA RECALCULAR ---
+        newMaterialCategoryInput.addEventListener('change', recalculateAndPreviewCurrentProduct); // Recalcula al cambiar categoría (resetea sección)
+        newMaterialSectionInput.addEventListener('change', recalculateAndPreviewCurrentProduct); // Recalcula al cambiar sección
+        newMaterialInput.addEventListener('change', recalculateAndPreviewCurrentProduct);
+        newAnchoInput.addEventListener('input', recalculateAndPreviewCurrentProduct);
+        newLargoInput.addEventListener('input', recalculateAndPreviewCurrentProduct);
+        newCantidadInput.addEventListener('input', recalculateAndPreviewCurrentProduct);
+    }
+
+    async function loadAllClientsData() {
+        if (!supabase) return;
+        const { data, error } = await supabase.from('clients').select('*');
+        if (error) console.error("Error cargando clientes:", error);
+        else allClientsData = data;
+    }
+
+    async function loadAllQuotes() {
+        if (!supabase) return;
+
+        // --- INICIO DE LA LÓGICA DE CACHÉ ---
+
+        // 1. Intentar cargar desde el caché (localStorage) primero para una carga instantánea.
+        const cachedQuotes = localStorage.getItem('cachedQuotes');
+        if (cachedQuotes) {
+            try {
+                const parsedQuotes = JSON.parse(cachedQuotes);
+                allQuotesData = parsedQuotes;
+                renderTable(parsedQuotes); // ¡Carga instantánea para el usuario!
+                console.log("Datos de cotizaciones cargados desde el caché.");
+            } catch (e) {
+                console.error("Error al parsear caché, se limpiará.", e);
+                localStorage.removeItem('cachedQuotes'); // Limpiar caché corrupto
+            }
+        }
+
+        // 2. Siempre pedir los datos más recientes a la base de datos en segundo plano.
+        try {
+            const { data, error } = await supabase.from('quotes').select(`
+                *,
+                clients(*),
+                quote_items(*)
+            `).order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error cargando cotizaciones desde Supabase:", error);
+                // Si hay un error y no teníamos caché, mostramos el error.
+                if (!cachedQuotes) {
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-red-500">Error al cargar datos.</td></tr>`;
+                }
+            } else {
+                // 3. Datos recibidos. Actualizar la UI y el caché.
+                allQuotesData = data; 
+                renderTable(data); // Actualiza la tabla con los datos frescos
+                try {
+                    localStorage.setItem('cachedQuotes', JSON.stringify(data)); // Actualiza el caché
+                } catch (cacheError) {
+                    console.warn("No se pudo actualizar el caché de cotizaciones. Es posible que se haya excedido la cuota de almacenamiento.", cacheError);
+                }
+            }
+        } catch (e) {
+            console.error("Fallo en la petición a Supabase:", e);
+        }
+        // --- FIN DE LA LÓGICA DE CACHÉ ---
+    }
+
+        // La gestión de productos (tabs y estado) se maneja en el ámbito superior para que la previsualización incluya todos los productos.
+
+        let editProductosCotizacion = [
+            {
+                productName: '',
+                ancho: '',
+                largo: '',
+                cantidad: '',
+                precioTotal: 0,
+                notes: ''
+            }
+        ];
+        let editProductoActual = 0;
+
+        function renderEditProductTabs() {
+            const editProductTabs = document.getElementById('editProductTabs');
+            editProductTabs.innerHTML = '';
+            editProductosCotizacion.forEach((prod, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-8 h-8 rounded-full ${editProductoActual === idx ? 'bg-blue-600 border-2 border-blue-700' : 'bg-blue-500 opacity-80 hover:opacity-100'} text-white font-bold flex items-center justify-center focus:outline-none mx-0.5`;
+                btn.textContent = idx + 1;
+                btn.dataset.index = idx;
+                btn.onclick = () => {
+                    guardarEditProductoActual();
+                    editProductoActual = idx;
+                    cargarEditProductoActual();
+                    renderEditProductTabs();
+                };
+                editProductTabs.appendChild(btn);
+            });
+            const plusBtn = document.createElement('button');
+            plusBtn.type = 'button';
+            plusBtn.className = 'w-8 h-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center focus:outline-none opacity-80 hover:opacity-100 mx-0.5';
+            plusBtn.id = 'addEditProductBtn';
+            plusBtn.textContent = '+';
+            plusBtn.onclick = () => {
+                guardarEditProductoActual();
+            productosCotizacion.push({ // Add a new empty product
+                    material: '',
+                    ancho: '',
+                    largo: '',
+                    cantidad: '',
+                precioTotal: 0,
+                    nota: ''
+                });
+                editProductoActual = editProductosCotizacion.length - 1;
+                cargarEditProductoActual();
+                renderEditProductTabs();
+            };
+            editProductTabs.appendChild(plusBtn);
+        }
+
+        function guardarEditProductoActual() {
+            editProductosCotizacion[editProductoActual] = {
+                productName: document.getElementById('editMaterial').value,
+                ancho: document.getElementById('editAncho').value,
+                largo: document.getElementById('editLargo').value,
+                cantidad: document.getElementById('editCantidad').value,
+                precioTotal: calcularPrecioProducto(document.getElementById('editMaterial').value, document.getElementById('editAncho').value, document.getElementById('editLargo').value, document.getElementById('editCantidad').value),
+                notes: document.getElementById('editNota').value
+            };
+        }
+
+        function cargarEditProductoActual() {
+            const prod = editProductosCotizacion[editProductoActual];
+            document.getElementById('editMaterial').value = prod.material || '';
+            document.getElementById('editAncho').value = prod.ancho || '';
+            document.getElementById('editLargo').value = prod.largo || '';
+            document.getElementById('editCantidad').value = prod.cantidad || '';
+            document.getElementById('editNota').value = prod.notes || '';
+        }
+
+        renderEditProductTabs();
+        cargarEditProductoActual();
+
+        newEmpresaInput.addEventListener('input', (e) => {
+            showCompanySuggestions(e.target.value);
+        });
+        
+        newSaleForm.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const activeElement = document.activeElement;
+                // CORRECCIÓN: Si el elemento activo es un botón de submit, no hacer nada y dejar que el navegador maneje el evento.
+                // Esto permite que al presionar Enter sobre el botón "Previsualizar" se envíe el formulario.
+                if (activeElement.tagName === 'BUTTON' && activeElement.type === 'submit') {
+                    return;
+                }
+
+                const formElements = Array.from(newSaleForm.elements).filter(el => el.type !== 'hidden');
+                const currentIndex = formElements.indexOf(activeElement);
+                
+                if (activeElement.id === 'newNota' || currentIndex === formElements.length - 1) {
+                    e.preventDefault(); 
+                    handleNewSaleFormSubmit(e);
+                } else {
+                    e.preventDefault();
+                    if (currentIndex > -1 && currentIndex < formElements.length - 1) {
+                        formElements[currentIndex + 1].focus();
+                    }
+                }
+            }
+        });
+        
+        // CORRECCIÓN: Se elimina el listener 'keydown' para 'Enter' que causaba conflictos.
+        // El evento 'submit' se encarga de manera nativa de manejar tanto el clic en el botón como la tecla Enter en los campos.
+        newSaleForm.addEventListener('submit', handleNewSaleFormSubmit);
+       
+        document.getElementById('otBtn').addEventListener('click', () => {
+            const recordId = previewSidebar.dataset.recordId;
+            if (recordId) {
+                // Si hay un recordId, obtener el registro para verificar si tiene O.T.
+                supabase.from('quotes').select('*, quote_items(ot_description, ot_image_url)').eq('id', recordId).single()
+                    .then(({ data: record, error }) => {
+                        if (error || !record) {
+                            showOtPanel();
+                            return;
+                        }
+                        const hasOtData = record.quote_items?.some(p => p.ot_image_url || p.ot_description) || false;
+                        showOtPanel(record, hasOtData);
+                    });
+            } else {
+                showOtPanel();
+            }
+        });
+        
+        document.getElementById('editPreviewBtn').addEventListener('click', () => {
+            const data = JSON.parse(previewSidebar.dataset.quoteData);
+
+            newEmpresaInput.value = data.client?.name || '';
+            newRutInput.value = data.client?.rut || '';
+            newTelefonoInput.value = data.client?.phone || '';
+            newCorreoInput.value = data.correo;
+            newContactoInput.value = data.client?.contact_person || '';
+
+            productosCotizacion = (Array.isArray(data.productos) && data.productos.length > 0)
+                ? data.productos.map(p => ({
+                    category: p.category || '',
+                    sectionId: p.sectionId || '',
+                    productId: p.productId || '',
+                    ancho: p.ancho || '',
+                    largo: p.largo || '',
+                    cantidad: p.cantidad || '',
+                    precioTotal: p.precioTotal || '',
+                    descuento: p.descuento || '',
+                    nota: p.nota || ''
+                }))
+                : [{
+                    category: '', // <-- AÑADIDO: Recuperar la categoría
+                    sectionId: '',
+                    productId: '',
+                    ancho: '',
+                    largo: '',
+                    cantidad: '',
+                    precioTotal: 0,
+                    descuento: '',
+                    nota: ''
+                }];
+            productoActual = 0;
+            renderProductTabs();
+            cargarProductoActual();
+            
+            previewSidebar.classList.remove('active');
+            otSidebar.classList.remove('active');
+            document.body.classList.remove('body-two-panels');
+            sidebar.classList.add('active');
+        });
+
+        document.getElementById('closeOtBtn').addEventListener('click', () => {
+            otSidebar.classList.remove('active');
+            previewSidebar.classList.remove('ot-active');
+            document.body.classList.remove('body-two-panels');
+            // Limpiar el contenedor de la grilla de OT
+            const otGridContainer = document.getElementById('otGridContainer');
+            if (otGridContainer) {
+                otGridContainer.innerHTML = '';
+            }
+            // No es necesario resetear el formulario principal aquí, solo el panel de OT.
+        });
+
+        // Event listener para guardar O.T. desde el panel
+        document.getElementById('saveOtBtn').addEventListener('click', async () => {
+            const recordId = document.getElementById('saveOtBtn').dataset.recordId || previewSidebar.dataset.recordId;
+            if (!recordId) {
+                alert('No se encontró el ID de la cotización');
+                return;
+            }
+
+            try {
+                // 1. Obtener los datos actuales de la cotización
+                const { data: quoteData, error: quoteError } = await supabase
+                    .from('quotes')
+                    .select('*, quote_items(*)')
+                    .eq('id', recordId)
+                    .single();
+
+                if (quoteError || !quoteData) {
+                    console.error('Error obteniendo cotización:', quoteError);
+                    alert('Error al obtener los datos de la cotización');
+                    return;
+                }
+
+                // 2. Actualizar datos de la cotización (receptionist, delivery_date)
+                const receptionistName = document.getElementById('otReceptionist')?.value || null;
+                const deliveryDate = document.getElementById('otDeliveryDate')?.value || null;
+                
+                let updateData = {};
+                if (receptionistName) {
+                    updateData.receptionist = receptionistName;
+                    // Si no hay estado, establecer a 'recepcion'
+                    if (!quoteData.estado || quoteData.estado === 'pendiente') {
+                        updateData.estado = 'recepcion';
+                        updateData.responsables = {
+                            recepcion: { nombre: receptionistName, timestamp: new Date().toISOString() }
+                        };
+                    }
+                }
+                if (deliveryDate) {
+                    updateData.delivery_date = deliveryDate;
+                }
+
+                if (Object.keys(updateData).length > 0) {
+                    const { error: updateError } = await supabase
+                        .from('quotes')
+                        .update(updateData)
+                        .eq('id', recordId);
+                    
+                    if (updateError) {
+                        console.error('Error actualizando cotización:', updateError);
+                        alert('Error al actualizar la cotización');
+                        return;
+                    }
+                }
+
+                // 3. Actualizar los quote_items con los datos de O.T.
+                const quoteItems = quoteData.quote_items || [];
+                for (let index = 0; index < quoteItems.length; index++) {
+                    let imageUrl = quoteItems[index].ot_image_url || null;
+                    
+                    // Subir imagen si hay una nueva
+                    const graficaInput = document.getElementById(`otGraficaInput-${index}`);
+                    if (graficaInput && graficaInput.files[0]) {
+                        const file = graficaInput.files[0];
+                        const safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+                        const relativePath = `${recordId}/${Date.now()}-${safeName}`;
+
+                        const bucketCandidates = ['ot-images', 'ot_images', 'otimages'];
+                        let uploaded = false;
+                        for (const bucket of bucketCandidates) {
+                            try {
+                                const { data: upData, error: uploadError } = await supabase.storage.from(bucket).upload(relativePath, file);
+                                if (uploadError) continue;
+                                const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(relativePath);
+                                imageUrl = urlData.publicUrl;
+                                uploaded = true;
+                                break;
+                            } catch (err) {
+                                continue;
+                            }
+                        }
+                        
+                        if (!uploaded) {
+                            // Fallback a base64
+                            try {
+                                const toBase64 = (f) => new Promise((res, rej) => {
+                                    const reader = new FileReader();
+                                    reader.onload = () => res(reader.result);
+                                    reader.onerror = rej;
+                                    reader.readAsDataURL(f);
+                                });
+                                imageUrl = await toBase64(file);
+                            } catch (err) {
+                                console.error('Error convirtiendo imagen a base64:', err);
+                            }
+                        }
+                    }
+
+                    // Obtener descripción de O.T.
+                    const otDescription = document.getElementById(`otDescripcionInput-${index}`)?.value || null;
+
+                    // Actualizar el quote_item
+                    const updateItem = {
+                        ot_description: otDescription,
+                        ot_image_url: imageUrl
+                    };
+
+                    const { error: itemError } = await supabase
+                        .from('quote_items')
+                        .update(updateItem)
+                        .eq('id', quoteItems[index].id);
+
+                    if (itemError) {
+                        console.error(`Error actualizando item ${index + 1}:`, itemError);
+                    }
+                }
+
+                // 4. Recargar datos y cerrar paneles
+                await loadAllQuotes();
+                otSidebar.classList.remove('active');
+                previewSidebar.classList.remove('active');
+                document.body.classList.remove('body-two-panels');
+            } catch (error) {
+                console.error('Error guardando O.T.:', error);
+                alert('Error al guardar la Orden de Trabajo');
+            }
+        });
+        
+        // Hooks de impresión consolidados más abajo (safePrint / safePrintOt)
+
+        document.getElementById('cancelPreviewBtn').addEventListener('click', () => {
+            previewSidebar.classList.remove('active');
+            otSidebar.classList.remove('active');
+            document.body.classList.remove('body-two-panels');
+            resetNewSaleForm();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!autocompletePopup.contains(e.target) && e.target !== newEmpresaInput) {
+                autocompletePopup.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('openFormBtn').addEventListener('click', () => {
+            currentEditingId = null; // Asegurarse de que no estamos en modo edición
+            sidebar.classList.add('active');
+            editSidebar.classList.remove('active');
+            previewSidebar.classList.remove('active');
+            otSidebar.classList.remove('active');
+            document.body.classList.remove('body-two-panels');
+            newEmpresaInput.focus();
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            resetNewSaleForm(); // Usa la nueva función para un reseteo completo
+        });
+
+        tableBody.addEventListener('click', async (e) => {
+            const editButton = e.target.closest('.ot-row-btn'); // Cambiado para que sea el botón de lápiz/OT
+            const otButton = e.target.closest('.ot-row-btn');
+            const deleteButton = e.target.closest('.delete-btn');
+
+            if (otButton) {
+                const id = otButton.getAttribute('data-id');
+                const { data } = await supabase.from('quotes').select('*, clients(*), quote_items(*)').eq('id', id).single();
+                if (data) {
+                    openOtForRecord(data, id);
+                } else {
+                    // Si se abre desde la lista, los botones deben estar visibles por defecto
+                    const otBtn = document.getElementById('otBtn');
+                    const closeOtBtn = document.getElementById('closeOtBtn');
+                    if (otBtn) otBtn.style.display = 'inline-block';
+                    if (closeOtBtn) closeOtBtn.style.display = 'inline-block';
+                }
+                return; // No continuar con otros manejadores
+            }
+
+            if (editButton) {
+                const id = editButton.getAttribute('data-id');
+                currentEditingId = id; // Guardar el ID que estamos editando
+                const { data } = await supabase.from('quotes').select('*, clients(*), quote_items(*)').eq('id', id).single();
+                if (data) {
+                    document.getElementById('editSaleId').value = id;
+                    document.getElementById('editEmpresa').value = data.empresa || '';
+                    document.getElementById('editRut').value = data.rut || '';
+                    document.getElementById('editGiro').value = data.giro || '';
+                    document.getElementById('editTelefono').value = data.telefono || '';
+                    document.getElementById('editCorreo').value = data.correo || '';
+                    document.getElementById('editContacto').value = data.contacto || '';
+
+                    // Preparar productos para edición (compatibilidad con esquema antiguo y nuevo)
+                    editProductosCotizacion = (Array.isArray(data.productos) && data.productos.length > 0)
+                        ? data.productos.map(p => ({
+                            productName: p.material || '',
+                            ancho: p.ancho || '',
+                            largo: p.largo || '',
+                            cantidad: p.cantidad || '',
+                            precioTotal: p.precioTotal || '',
+                            notes: p.nota || ''
+                        }))
+                        : [{
+                            productName: data.material || '',
+                            ancho: data.ancho || '',
+                            largo: data.largo || '',
+                            cantidad: data.cantidad || '',
+                            precioTotal: data.precioTotal || 0,
+                            notes: data.nota || ''
+                        }];
+                    editProductoActual = 0;
+                    renderEditProductTabs();
+                    cargarEditProductoActual();
+
+                    editSidebar.classList.add('active');
+                    sidebar.classList.remove('active');
+                    previewSidebar.classList.remove('active');
+                    otSidebar.classList.remove('active');
+                    document.body.classList.remove('body-two-panels');
+                }
+            }
+            if (deleteButton) {
+                saleToDeleteId = deleteButton.getAttribute('data-id');
+                deleteModal.style.display = 'flex'; 
+            }
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            editSidebar.classList.remove('active');
+            document.getElementById('editSaleForm').reset();
+        });
+
+        document.getElementById('editSaleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saleId = document.getElementById('editSaleId').value;
+            
+            const ancho = parseFloat(document.getElementById('editAncho').value) || 0;
+            const largo = parseFloat(document.getElementById('editLargo').value) || 0;
+            const cantidad = parseInt(document.getElementById('editCantidad').value) || 0;
+            
+            const updatedData = {
+                empresa: document.getElementById('editEmpresa').value,
+                rut: document.getElementById('editRut').value,
+                giro: document.getElementById('editGiro').value,
+                telefono: document.getElementById('editTelefono').value,
+                correo: document.getElementById('editCorreo').value,
+                contacto: document.getElementById('editContacto').value,
+                productName: document.getElementById('editMaterial').value,
+                ancho: ancho,
+                largo: largo,
+                cantidad: cantidad,
+                precioTotal: calcularPrecioProducto(document.getElementById('editMaterial').value, ancho, largo, cantidad),
+                notes: document.getElementById('editNota').value,
+            };
+            
+            editSidebar.classList.remove('active');
+            
+            updateProduct(saleId, updatedData)
+                .catch(error => {
+                    console.error("Error al actualizar la cotización:", error);
+                });
+        });
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (saleToDeleteId) {
+                await supabase.from('quotes').delete().eq('id', saleToDeleteId);
+                deleteModal.style.display = 'none';
+                saleToDeleteId = null;
+                // La tabla se actualizará automáticamente por la suscripción en tiempo real
+            }
+        });
+
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+            saleToDeleteId = null;
+        });
+    init();
+
+    // --- Lógica de Guardado y Eventos de Botones (Centralizada) ---
+
+    document.getElementById('printBtn').addEventListener('click', safePrint);
+    document.getElementById('printOtBtn').addEventListener('click', function() {
+        console.log('Print OT button clicked');
+        safePrintOt();
+    });
+
+  // Ensure the visible "Previsualizar" button always opens the preview correctly
+  (function(){
+    const previewBtn = document.getElementById('previewBtn');
+    if (!previewBtn) return;
+    let __previewLock = false;
+    previewBtn.addEventListener('click', (ev) => {
+      // Prevent default form submission double-handling and ensure a single invocation
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (__previewLock) return;
+      __previewLock = true;
+      try {
+        // Guardar el producto actual y abrir la previsualización usando la lógica existente
+        if (typeof guardarProductoActual === 'function') guardarProductoActual();
+        if (typeof showPreview === 'function') showPreview();
+      } catch (err) {
+        console.error('Error al abrir previsualización:', err);
+      } finally {
+        // liberar el lock tras un corto intervalo para permitir nuevas acciones
+        setTimeout(() => { __previewLock = false; }, 300);
+      }
+    });
+  })();
+
+    document.getElementById('saveQuoteBtn').addEventListener('click', async () => {
+        const otWasActive = otSidebar.classList.contains('active');
+        let data = JSON.parse(previewSidebar.dataset.quoteData); // Usar let para poder reasignar
+        
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Volvemos a calcular los totales aquí para que estén disponibles en este scope.
+        let subtotalBruto = 0;
+        let descuentoTotal = 0;
+        data.productos.forEach(prod => {
+            const precioProducto = parseFloat(prod.precioTotal) || 0;
+            subtotalBruto += precioProducto;
+            descuentoTotal += precioProducto * (parseFloat(prod.descuento) || 0) / 100;
+        });
+        
+        const neto = subtotalBruto - descuentoTotal;
+        const iva = neto * 0.19;
+        const totalConIVA = neto + iva;
+        // --- FIN DE LA CORRECCIÓN ---
+        
+        // --- INICIO DE LA CORRECCIÓN: Lógica de cliente definitiva ---
+        // 1. Usar `upsert` con el RUT como identificador único.
+        // Si el RUT existe, actualiza el nombre, contacto y teléfono.
+        // Si el RUT no existe, crea un nuevo cliente.
+        const { data: clientData, error: clientError } = await supabase
+            .from('clients')
+            .upsert({ name: data.client.name, rut: data.client.rut, phone: data.client.phone, contact_person: data.client.contact_person, email: data.correo }, { onConflict: 'rut' })
+            .select('id')
+            .single();
+
+        if (clientError) return console.error("Error guardando/actualizando cliente:", clientError);
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // 2. Guardar la cotización principal, asociándola al ID del cliente encontrado o creado.
+        const receptionistName = otWasActive ? document.getElementById('otReceptionist')?.value || null : null;
+        let initialState = 'pendiente';
+        let initialResponsables = {};
+
+        if (receptionistName) {
+            initialState = 'recepcion';
+            initialResponsables.recepcion = { nombre: receptionistName, timestamp: new Date().toISOString() };
+        }
+
+        // Obtener el quote_number desde los datos de la previsualización
+        const quoteNumber = data.quoteNumber || await getNextQuoteNumber();
+        
+        const { data: quoteData, error: quoteError } = await supabase
+            .from('quotes')
+            .insert({
+                client_id: clientData.id,
+                quote_number: quoteNumber, // Incluir el número de cotización
+                // Los campos de nombre y contacto específicos de la cotización ya no son necesarios aquí,
+                // ya que la tabla 'clients' ahora siempre tendrá la información más reciente.
+                subtotal: subtotalBruto,
+                discount_total: descuentoTotal,
+                net_total: neto,
+                iva: iva,
+                total: totalConIVA,
+                receptionist: receptionistName,
+                delivery_date: otWasActive ? document.getElementById('otDeliveryDate')?.value || null : null,
+                estado: initialState,
+                responsables: initialResponsables
+            })
+            .select()
+            .single();
+
+        if (quoteError) return console.error("Error guardando cotización:", quoteError);
+
+        // 3. Guardar los items de la cotización (y subir imágenes si es necesario)
+        for (const [index, producto] of data.productos.entries()) {
+            let imageUrl = null;
+            const graficaInput = document.getElementById(`otGraficaInput-${index}`);
+            if (otWasActive && graficaInput && graficaInput.files[0]) {
+              const file = graficaInput.files[0];
+              // Sanitizar nombre de archivo para evitar espacios y caracteres problemáticos
+              const safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+              const relativePath = `${quoteData.id}/${Date.now()}-${safeName}`;
+
+              // Intentar subir a bucket preferido; si falla por "Bucket not found", intentar nombres alternativos
+              const bucketCandidates = ['ot-images', 'ot_images', 'otimages'];
+              let uploaded = false;
+              let lastError = null;
+              for (const bucket of bucketCandidates) {
+                try {
+                  const { data: upData, error: uploadError } = await supabase.storage.from(bucket).upload(relativePath, file);
+                  if (uploadError) {
+                    lastError = uploadError;
+                    console.debug(`Upload to bucket '${bucket}' failed:`, uploadError.message || uploadError);
+                    continue; // probar siguiente bucket
+                  }
+                  // Si llegó aquí, la subida fue exitosa
+                  const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(relativePath);
+                  imageUrl = urlData.publicUrl;
+                  uploaded = true;
+                  break;
+                } catch (err) {
+                  lastError = err;
+                  console.debug(`Upload exception for bucket '${bucket}':`, err);
+                }
+              }
+              if (!uploaded) {
+                console.error('Error subiendo imagen: no se pudo subir a ningún bucket. Último error:', lastError);
+                // Fallback: convertir a base64 y usar como URL para que la imagen siga apareciendo
+                try {
+                  const toBase64 = (f) => new Promise((res, rej) => {
+                    const reader = new FileReader();
+                    reader.onload = () => res(reader.result);
+                    reader.onerror = rej;
+                    reader.readAsDataURL(f);
+                  });
+                  const b64 = await toBase64(file);
+                  imageUrl = b64; // Guardaremos el data URL en la BD
+                  console.debug('Fallback: imagen convertida a Base64 y asignada a ot_image_url');
+                } catch (err) {
+                  console.error('Fallback a Base64 falló:', err);
+                }
+              }
+            }
+
+            // Obtener el nombre de la sección (grupo de materiales) desde sectionId
+            let sectionName = null;
+            if (producto.sectionId && allCatalogData.sections.length > 0) {
+                const section = allCatalogData.sections.find(s => String(s.id) === String(producto.sectionId));
+                if (section) {
+                    sectionName = section.title;
+                }
+            }
+            // Si no se encontró por sectionId, intentar obtenerlo desde el product_id
+            if (!sectionName && producto.productId && allCatalogData.products.length > 0 && allCatalogData.sections.length > 0) {
+                const product = allCatalogData.products.find(p => String(p.id) === String(producto.productId));
+                if (product && product.section_id) {
+                    const section = allCatalogData.sections.find(s => String(s.id) === String(product.section_id));
+                    if (section) {
+                        sectionName = section.title;
+                    }
+                }
+            }
+            // Usar el nombre de la sección (grupo de materiales) como descripción, que es lo que se mostrará en la lista
+            const descriptionToSave = sectionName || producto.productName || '';
+
+            const itemData = {
+                quote_id: quoteData.id,
+                product_id: producto.productId || null,
+                description: descriptionToSave,
+                width: parseFloat(producto.ancho) || null,
+                height: parseFloat(producto.largo) || null,
+                quantity: parseInt(producto.cantidad) || null,
+                total_price: parseFloat(producto.precioTotal) || null,
+                discount: parseFloat(producto.descuento) || null,
+                notes: producto.nota,
+                ot_description: otWasActive ? document.getElementById(`otDescripcionInput-${index}`)?.value || null : null,
+                ot_image_url: imageUrl,
+                // Guardar el nombre de la sección en notes si hay espacio, o mejor aún, usarlo directamente en description
+                // Por ahora, lo guardaremos en un campo que podamos usar después
+            };
+            const { error: itemError } = await supabase.from('quote_items').insert(itemData);
+            if (itemError) console.error(`Error guardando item ${index + 1}:`, itemError);
+        }
+
+        // 4. Limpiar, cerrar paneles y actualizar caché proactivamente
+        previewSidebar.classList.remove('active');
+        otSidebar.classList.remove('active');
+        document.body.classList.remove('body-two-panels');
+        resetNewSaleForm();
+
+        // --- INICIO DE LA CORRECCIÓN: Actualización proactiva del caché ---
+        // En lugar de esperar la recarga, actualizamos el caché local inmediatamente.
+        const newFullQuote = { ...quoteData, clients: clientData, quote_items: data.productos };
+        allQuotesData.unshift(newFullQuote); // Añadir la nueva cotización al principio de la lista en memoria.
+        renderTable(allQuotesData); // Re-renderizar la tabla inmediatamente con los datos en memoria.
+        localStorage.setItem('cachedQuotes', JSON.stringify(allQuotesData)); // Actualizar el caché en localStorage.
+        console.log("Caché actualizado proactivamente con la nueva cotización.");
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // La tabla se actualizará sola gracias a la suscripción en tiempo real.
+        // Forzar recarga de cotizaciones en caso de que la suscripción no haya llegado todavía
+        try { await loadAllQuotes(); } catch (e) { console.debug('loadAllQuotes after save error', e); }
+    });
+
+    function resetNewSaleForm() {
+        newSaleForm.reset();
+        newEmpresaInput.value = '';
+        newRutInput.value = '';
+        newTelefonoInput.value = '';
+        newCorreoInput.value = '';
+        newMaterialCategoryInput.value = '';
+    // Reset selects and inputs visibles
+    newMaterialInput.style.display = 'none';
+        newContactoInput.value = '';
+        newMaterialInput.value = '';
+        newAnchoInput.value = '';
+        newLargoInput.value = '';
+        newCantidadInput.value = '';
+    newDescuentoInput.value = '';
+    newNotaInput.value = '';
+    // Reset section/product selects
+    newMaterialSectionInput.innerHTML = '<option value="">2. Seleccione un grupo...</option>';
+    newMaterialSectionInput.style.display = 'none';
+    newMaterialInput.innerHTML = '<option value="">3. Producto (Automático)</option>';
+    newMaterialInput.style.display = 'none';
+        
+        // Resetear la lista de productos
+        productosCotizacion = [{
+            category: '',
+            productId: '',
+            productName: '',
+            ancho: '',
+            largo: '',
+            cantidad: '',
+            precioTotal: 0,
+            descuento: '',
+            nota: ''
+        }];
+        productoActual = 0;
+    // Re-render product tabs and cargar producto actual para actualizar la UI
+    try {
+      renderProductTabs();
+      cargarProductoActual();
+    } catch (err) {
+      console.debug('resetNewSaleForm: error re-rendering product tabs', err);
+    }
+    }
+
+    // --- Lógica de Impresión (safe - evita múltiples diálogos) ---
+    // Lock para prevenir reentradas y múltiples invocaciones a window.print()
+    let __printingLock = false;
+
+    function safePrint() {
+        if (__printingLock) return;
+        __printingLock = true;
+
+        previewSidebar.classList.add('active');
+        if (window.parent && window.parent !== window) {
+            // Usar el nuevo tipo de mensaje 'print-quote'
+            window.parent.postMessage({ type: 'print-quote', selector: '#previewSidebar' }, '*');
+        } else {
+            setTimeout(() => window.print(), 150);
+        }
+    }
+
+    function safePrintOt() {
+        console.log('safePrintOt called'); // Debug log
+        if (__printingLock) {
+            console.log('Printing locked, returning');
+            return;
+        }
+        __printingLock = true;
+        try {
+            console.log('Activating OT sidebar and print styles');
+            // Asegurar que el panel OT esté activo y visible
+            otSidebar.classList.add('active');
+            document.body.classList.add('print-ot');
+            
+            // Verificar si estamos en un iframe
+            if (window.parent !== window) {
+                console.log('In iframe, sending message to parent');
+                // Enviar mensaje al padre para que maneje la impresión
+                window.parent.postMessage({ type: 'print-ot-content' }, '*');
+            } else {
+                console.log('Not in iframe, calling window.print() directly');
+                // Comportamiento original si se abre el archivo directamente
+                setTimeout(() => {
+                    window.print();
+                }, 200);
+            }
+        } catch (error) {
+            console.error('Error in safePrintOt:', error);
+        } finally { }
+    };
+
+    window.addEventListener('afterprint', () => {
+        document.body.classList.remove('print-ot');
+        // small delay to avoid race with other click handlers
+        setTimeout(() => { __printingLock = false; }, 60);
+    });
+
+    </script>
+
+        <!-- Global autocomplete popup placed in body so we can position it beside the sidebar -->
+        <div id="autocompletePopup" class="autocomplete-popup hidden" style="position:fixed; width:350px; max-height:400px; overflow-y:auto; z-index:9999; pointer-events:auto; background-color:#2c313c; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.5); border:1px solid #383838; padding:8px;"></div>
+
+    </body>
+    </html>

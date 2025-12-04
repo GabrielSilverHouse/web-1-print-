@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Qué hacemos?</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #1A2430;
+      color: #f9f9f9;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #d1d5db; /* Color ajustado para el nuevo fondo */
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      color: #9ca3af; /* Color ajustado para el nuevo fondo */
+      margin-bottom: 40px;
+      font-weight: 500;
+    }
+
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .card {
+      width: calc(25% - 30px);
+      min-width: 280px;
+      background: #384C62; /* Tono de fondo de la tarjeta más claro */
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: contain;
+      padding: 10px;
+      background: #425A72; /* Color de fondo de la imagen más claro */
+      border-radius: 8px;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 20px 0;
+      color: #f9f9f9;
+    }
+
+    .btn {
+      background-color: #b0b0b0;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background-color: #999;
+    }
+
+    @media (max-width: 1024px) {
+      .card {
+        width: calc(50% - 15px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        width: 100%;
+      }
+      h1 {
+        font-size: 2.5rem;
+      }
+      .subtitle {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>PRODUCTOS STOCK</h2>
+    <p class="subtitle">DISPONIBLES</p>
+
+    <div class="cards-container">
+      <!-- Tarjeta 1 -->
+      <div class="card">
+        <img src="https://img.freepik.com/vector-premium/logotipo-coche-carreras_183875-414.jpg" alt="Cemento" />
+        <h3 class="card-title">VINIL</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 2 -->
+      <div class="card">
+        <img src="https://fuelcarmagazine.com/wp-content/uploads/2020/08/Peugeot-logo-2010-1920x1080-1-1024x576.png" alt="Hormigón" />
+        <h3 class="card-title">VINIL IMPRIMIBLE</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 3 -->
+      <div class="card">
+        <img src="https://marketplace.canva.com/EAFLmo3CDe4/1/0/1600w/canva-logo-de-taller-mec%C3%A1nico-ilustrativo-negro-x3jrQSBQk68.jpg" alt="Prefabricados" />
+        <h3 class="card-title">VINIL DE CORTE</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 4 -->
+      <div class="card">
+        <img src="https://images.pexels.com/photos/19321355/pexels-photo-19321355.jpeg" alt="Áridos" />
+        <h3 class="card-title">TRANSPARENTE</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+      
+      <!-- Tarjeta 5 -->
+      <div class="card">
+        <img src="https://st.depositphotos.com/1826082/2231/v/450/depositphotos_22318127-stock-illustration-logo-of-auto.jpg" alt="Lona Imprimible" />
+        <h3 class="card-title">LONA IMPRIMIBLE</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 6 -->
+      <div class="card">
+        <img src="https://brandemia.org/sites/default/files/inline/images/logo_hyundai_antes.jpg" alt="Papel Fotográfico" />
+        <h3 class="card-title">PAPEL FOTOGRÁFICO</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 7 -->
+      <div class="card">
+        <img src="https://1000marcas.net/wp-content/uploads/2020/01/Citroen-Logo-2019.png" alt="Imanes Imprimibles" />
+        <h3 class="card-title">IMANES IMPRIMIBLES</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+
+      <!-- Tarjeta 8 -->
+      <div class="card">
+        <img src="https://cdn.pixabay.com/photo/2025/08/09/18/23/knight-9765068_1280.jpg" alt="Acrílico" />
+        <h3 class="card-title">ACRÍLICO</h3>
+        <button class="btn">SABER MÁS</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Puedes agregar funcionalidad aquí (ej: abrir modales)
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        alert('Este botón aún no tiene funcionalidad. Puedes conectarlo a una página o modal.');
+      });
+    });
+  </script>
+
+</body>
+</html>

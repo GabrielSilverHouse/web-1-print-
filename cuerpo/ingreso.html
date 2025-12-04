@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Inicio de Sesión</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://media.istockphoto.com/id/1043689464/es/foto/m%C3%A1quina-de-impresi%C3%B3n-de-gran-formato-en-operaci%C3%B3n-industria.jpg?s=2048x2048&w=is&k=20&c=q0ZnHgbeSX-j1SofG20GeMEQLTMhcS8yVd7ZqjCnB3s=') no-repeat center center/cover;
+            color: white;
+        }
+        .container {
+            display: flex;
+            width: 85%;
+            max-width: 1100px;
+            gap: 50px;
+            align-items: center;
+        }
+        .welcome, .login {
+            flex: 1;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .welcome {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+        .welcome h1 {
+            /* Fuente ajustada a 3.5em */
+            font-size: 3.5em; 
+            margin: 0;
+        }
+        .welcome p {
+            /* Fuente ligeramente más grande: 1.1em */
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+        .login {
+            padding: 40px;
+            color: white;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .login h2 {
+            /* Fuente más grande: 2.5em */
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        .login input, .login select { /* Aplicamos estilos tanto a input como a select */
+            width: 100%;
+            padding: 10px;
+            /* AUMENTADO: Margen ajustado para separación igualitaria y para empujar el botón más abajo */
+            margin: 10px 0 30px 0; 
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            /* CAMBIO CLAVE: Aumentar la opacidad (de 0.2 a 0.4) para que sean más visibles */
+            background: rgba(255, 255, 255, 0.4); 
+            color: white;
+            border: none;
+            outline: none;
+            /* Estilos específicos para el select */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23ffffff'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd' /%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7em top 50%, 0 0;
+            background-size: 0.8em auto, 100%;
+            padding-right: 2.5em;
+        }
+        .login input::placeholder {
+            /* CAMBIO CLAVE: Hacer el texto de placeholder más claro (de 0.7 a 0.9) */
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .login select option {
+            /* Estilo de las opciones en el dropdown */
+            color: #1a1a1a;
+            background-color: #f5f5f5;
+        }
+        .login button {
+            width: 100%;
+            padding: 10px;
+            /* Margen inferior para separarlo del enlace (mantenido en 20px) */
+            margin-bottom: 20px;
+            background-color: #f28c38;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .login button:hover {
+            background-color: #e07b2d;
+        }
+        .login a {
+            color: #f28c38;
+            text-decoration: none;
+        }
+        .login a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Animation trigger on load */
+        .welcome.active, .login.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome">
+            <!-- Título actualizado a "Bienvenido" -->
+            <h1>IMPRENTA</h1> 
+            <h2>SPEED SERVIC</H2>
+            <!-- Descripción ajustada para enfocarse en la eficiencia y el flujo de trabajo -->
+            <p>Accede a tus herramientas de gestión y producción. Controla pedidos, cotizaciones y el flujo de trabajo de la empresa de vinilos y rótulos.</p>
+        </div>
+        <div class="login">
+            <h2>Iniciar Sesión</h2>
+            <form id="loginForm">
+                <input type="text" id="username" placeholder="Nombre de Usuario" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                
+                <!-- Selector de Tipo de Usuario (Rol) -->
+                <select id="userRole" required>
+                    <option value="" disabled selected>Selecciona tu rol</option>
+                    <option value="gerente">Gerente</option>
+                    <option value="trabajador">Trabajador</option>
+                    <option value="recepcion">Recepción</option>
+                </select>
+
+                <button type="submit">Iniciar sesión ahora</button>
+                <a href="#">¿Olvidaste tu contraseña?</a>
+            </form>
+        </div>
+    </div>
+    <script>
+        // Función para mostrar mensajes temporales
+        function showMessage(message, isSuccess = true) {
+            const messageBox = document.createElement('div');
+            const color = isSuccess ? '#4ade80' : '#ef4444'; // Verde para éxito, Rojo para error
+            
+            messageBox.style.cssText = `
+                position:fixed; 
+                top:20px; 
+                right:20px; 
+                background-color:${color}; 
+                color:white; 
+                padding:12px 20px; 
+                border-radius:8px; 
+                z-index:1000;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: opacity 0.5s;
+                opacity: 1;
+            `;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+            
+            // Ocultar después de 4 segundos
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+                setTimeout(() => messageBox.remove(), 500);
+            }, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animación de bienvenida
+            const welcome = document.querySelector('.welcome');
+            const login = document.querySelector('.login');
+            setTimeout(() => {
+                welcome.classList.add('active');
+                login.classList.add('active');
+            }, 100);
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Credenciales Fijas (SOLO PARA DEMOSTRACIÓN)
+            const USERS = {
+                'gerente': { user: 'SILVESTRE', pass: 'imprentasilver' },
+                'trabajador': { user: 'SPEED SERVER', pass: 'imprentabanners' },
+                'recepcion': { user: 'RECEPCION', pass: 'imprentarecepcion' }
+            };
+
+            // Recoger los valores del formulario
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.getElementById('userRole').value;
+
+            if (role === "") {
+                showMessage('Por favor, selecciona tu rol.', false);
+                return;
+            }
+
+            const expectedUser = USERS[role];
+
+            if (username.toUpperCase() === expectedUser.user && password === expectedUser.pass) {
+                // Autenticación Exitosa
+                showMessage(`¡Inicio de sesión exitoso! Bienvenido ${role.toUpperCase()}.`, true);
+
+                // Guardar el estado de la sesión para que otras páginas sepan que el usuario está autenticado.
+                sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('userRole', role);
+
+                // Después de un breve momento, iniciar la animación de salida.
+                setTimeout(() => {
+                    const welcome = document.querySelector('.welcome');
+                    const login = document.querySelector('.login');
+                    welcome.classList.remove('active');
+                    login.classList.remove('active');
+
+                    // Redirigir después de que la animación de salida (500ms) haya terminado.
+                    setTimeout(() => {
+                        window.location.href = '../index.html';
+                    }, 600); // 600ms para dar un pequeño margen
+                }, 900); // 900ms de espera para que el usuario lea el mensaje
+            } else {
+                // Fallo de Autenticación
+                showMessage('Credenciales incorrectas para el rol seleccionado. Inténtalo de nuevo.', false);
+            }
+        });
+    </script>
+</body>
+</html>

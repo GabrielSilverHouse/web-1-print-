@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // --- Bloque de Seguridad ---
+        // Este script se ejecuta primero para proteger la página.
+        // Comprueba si el usuario ha iniciado sesión.
+        const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+
+        // Si no hay una sesión activa, redirige inmediatamente a la página de ingreso.
+        if (isLoggedIn !== 'true') {
+            // La ruta 'cuerpo/ingreso.html' asume que esta es la ubicación correcta desde la raíz.
+            window.location.href = 'cuerpo/ingreso.html';
+        }
+    </script>
+    <title>Página con Diseño Oscuro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Librería de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Aquí se ha pegado tu código CSS -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            /* Se ha reducido el tamaño de la fuente para que los títulos se vean más pequeños */
+            font-size: 0.75rem; 
+        }
+        .nav-link:hover {
+            color: #fff;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            right: 0.5rem;
+            bottom: -2px;
+            height: 2px;
+            background-color: #fff;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+        .dropdown-menu {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform-origin: top;
+            transform: scaleY(0);
+            opacity: 0;
+            visibility: hidden; /* Oculta el elemento de forma accesible */
+        }
+        /* Clase temporal usada al cerrar defensivamente para evitar estilos inline */
+        .dropdown-menu.closing {
+            transform: scaleY(0) !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        .show {
+            transform: scaleY(1);
+            opacity: 1;
+            visibility: visible; /* Lo hace visible y con el que se puede interactuar */
+        }
+        /* Mostrar el menú al pasar el cursor sobre el grupo (hover) */
+        .group:hover .dropdown-menu,
+        .group:focus-within .dropdown-menu {
+            transform: scaleY(1);
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Aumentar el z-index para que el dropdown quede por encima de iframes u otros elementos */
+        .dropdown-menu {
+            z-index: 9999;
+        }
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        nav {
+            /* Altura fija para la barra de navegación */
+            height: 56px;
+            min-height: 56px;
+            /* Asegura que la barra de navegación y sus dropdowns queden por encima del iframe */
+            position: relative;
+            z-index: 10000;
+        }
+        main {
+            flex: 1 1 auto;
+            padding: 0;
+            margin: 0;
+            height: calc(100vh - 56px);
+            display: flex;
+            flex-direction: column;
+            justify-content: stretch;
+        }
+        #contenido-principal {
+            flex: 1 1 auto;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            /* Permite que el contenido posicionado de forma fija se desborde */
+            overflow: visible; 
+            display: flex;
+            flex-direction: column;
+        }
+        #iframe-contenido {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            border: none;
+            display: none;
+            background: #222;
+            border-radius: 0;
+            /* Asegura que el iframe esté en un contexto de apilamiento superior */
+            z-index: 1; 
+        }
+        /* --- ESTILOS DE IMPRESIÓN CENTRALIZADOS --- */
+        #print-container {
+            display: none; /* Oculto por defecto */
+        }
+        @media print {
+            /* Ocultar todo excepto el contenedor de impresión */
+            body > *:not(#print-container) {
+                display: none !important;
+            }
+            /* Mostrar el contenedor de impresión y asegurar que ocupe toda la página */
+            #print-container {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                position: absolute !important;
+                top: 0;
+                left: 0;
+                background: white;
+                color: black;
+            }
+            @page {
+                size: letter portrait;
+                margin: 1cm;
+            }
+
+            /* --- Estilos de impresión para la previsualización de cotización clonada --- */
+            #print-container .invoice-preview {
+                box-sizing: border-box !important;
+                padding: 12mm !important;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: 'Inter', Arial, sans-serif !important;
+                font-size: 11pt !important;
+            }
+            #print-container .invoice-preview h1,
+            #print-container .invoice-preview h2,
+            #print-container .invoice-preview h3 {
+                margin: 0 0 6mm 0 !important;
+                color: #000 !important;
+            }
+            #print-container table.invoice-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border: 1px solid #bdbdbd !important;
+                table-layout: fixed !important;
+                font-size: 10.5pt !important;
+            }
+            #print-container table.invoice-table thead th {
+                border: 1px solid #aeb7c4 !important;
+                /* fondo ligeramente más oscuro con efecto jaspeado */
+                background: repeating-linear-gradient(
+                    -45deg,
+                    #e9edf3 0px,
+                    #e9edf3 6px,
+                    #f3f6fb 6px,
+                    #f3f6fb 12px
+                ) !important;
+                color: #000 !important;
+                padding: 6px 8px !important;
+                text-transform: uppercase !important;
+                font-weight: 600 !important;
+            }
+            #print-container table.invoice-table tbody td {
+                border: 1px solid #d1d5db !important;
+                padding: 6px 8px !important;
+                color: #000 !important;
+                vertical-align: top !important;
+            }
+            /* Alinear columnas numéricas a la derecha */
+            #print-container table.invoice-table th:nth-child(1),
+            #print-container table.invoice-table td:nth-child(1),
+            #print-container table.invoice-table th:nth-child(2),
+            #print-container table.invoice-table td:nth-child(2) { text-align: center !important; width: 10%; }
+            #print-container table.invoice-table th:nth-child(5),
+            #print-container table.invoice-table td:nth-child(5),
+            #print-container table.invoice-table th:nth-child(6),
+            #print-container table.invoice-table td:nth-child(6) { text-align: right !important; width: 14%; }
+
+            /* Totales con separación y alineación */
+            #print-container table.totals-table { width: 100% !important; border-collapse: collapse !important; margin-top: 8mm !important; }
+            #print-container table.totals-table td { padding: 6px 6px !important; }
+            #print-container table.totals-table tr td:first-child { text-align: right !important; width: 75%; }
+            #print-container table.totals-table tr td:last-child { text-align: right !important; width: 25%; }
+            /* líneas segmentadas para cada fila de totales */
+            #print-container table.totals-table tr td { border-bottom: 1px dashed #b8b8b8 !important; }
+            /* la fila TOTAL con línea sólida y texto más fuerte */
+            #print-container table.totals-table tr:last-child td { border-bottom: 2px solid #3b3b3b !important; font-weight: 700 !important; }
+
+            /* Ocultar botones de acción (O.T., Guardar, Editar, Imprimir, Cancelar) */
+            #print-container .action-buttons { display: none !important; visibility: hidden !important; }
+            #print-container #otBtn,
+            #print-container #saveQuoteBtn,
+            #print-container #editPreviewBtn,
+            #print-container #printBtn,
+            #print-container #cancelPreviewBtn { display: none !important; visibility: hidden !important; }
+
+            /* --- Estilos específicos para impresión de O.T. --- */
+            body.print-ot #print-container {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            body.print-ot #print-container #otSidebar {
+                box-sizing: border-box !important;
+                width: 100% !important;
+                padding: 12mm !important;
+                background: #fff !important;
+                color: #000 !important;
+            }
+            /* Título principal */
+            body.print-ot #print-container #otSidebar h2 {
+                text-align: center !important;
+                font-size: 18pt !important;
+                font-weight: 800 !important;
+                margin: 0 0 10mm 0 !important;
+                letter-spacing: 0.5px !important;
+            }
+            body.print-ot #print-container #otSidebar .ot-panel-content {
+                padding: 0 !important;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: 'Inter', Arial, sans-serif !important;
+                font-size: 11pt !important;
+            }
+            /* Cuadros/Marco general */
+            body.print-ot #print-container #otSidebar .ot-section {
+                border: 1px solid #bdbdbd !important;
+                border-radius: 2px !important;
+                padding: 6mm !important;
+                margin-bottom: 8mm !important;
+            }
+            /* Tarjeta de datos del cliente (sin cuadriculado en impresión) */
+            body.print-ot #print-container #otSidebar .bg-gray-700 {
+                background: transparent !important;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                margin-bottom: 8mm !important;
+            }
+            /* Entrega sin cuadro (como texto) */
+            body.print-ot #print-container #otSidebar #otDeliveryDate {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                height: auto !important;
+                width: auto !important;
+            }
+            body.print-ot #print-container #otSidebar .bg-gray-700 p.font-bold {
+                font-size: 12pt !important;
+                margin: 0 0 4mm 0 !important;
+            }
+            /* Encabezados de grilla */
+            body.print-ot #print-container #otSidebar .ot-grid-header {
+                background: #e9edf3 !important; /* un poco más oscuro para resaltar */
+                border: 1px solid #b6c2d1 !important;
+                padding: 6px 8px !important;
+                text-transform: uppercase !important;
+                font-weight: 600 !important;
+                color: #000 !important;
+            }
+            /* Celdas de grilla */
+            body.print-ot #print-container #otSidebar .ot-grid-cell {
+                /* Base sin cuadrito. Después especificamos cuáles sí llevan borde */
+                border: none !important;
+                padding: 8px 10px !important;
+                background: #fff !important;
+                color: #000 !important;
+                justify-content: flex-start !important;
+                align-items: flex-start !important;
+                min-height: 18mm !important;
+            }
+            /* Rejilla 3 columnas con proporciones iguales y separación consistente */
+            body.print-ot #print-container #otSidebar .ot-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 6mm !important;
+                margin-top: 8mm !important;
+                margin-bottom: 2mm !important;
+            }
+            /* Altura y centrado del bloque de CANT. */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-cantidad {
+                font-size: 18pt !important;
+                font-weight: 700 !important;
+                text-align: center !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                min-height: 45mm !important;
+            }
+            /* Si no hay clases específicas, centrar y realzar la 1ª celda de cada fila (CANT.) */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grid-cell:nth-of-type(3n+1) {
+                text-align: center !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 16pt !important;
+                font-weight: 700 !important;
+                border: 1px solid #d1d5db !important; /* Cantidad en cuadro */
+                border-radius: 6px !important;
+                background: #fafbfc !important;
+            }
+            /* Imagen con marco y tamaño fijo para mantener proporción */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grafica img {
+                max-width: 60mm !important;
+                max-height: 40mm !important;
+                width: auto !important;
+                height: auto !important;
+                border: none !important; /* quitar doble marco: solo queda el cuadro externo */
+                border-radius: 6px !important;
+                padding: 2mm !important;
+                display: block !important;
+                margin: 0 auto !important;
+                background: #fff !important;
+            }
+            /* Si no hay clases específicas, dibujar cuadrito redondeado sólo en la 2ª celda (GRÁFICA) */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grid-cell:nth-of-type(3n+2) {
+                border: 1px solid #d1d5db !important; /* Un solo cuadro para GRÁFICA */
+                border-radius: 8px !important;
+                background: #f7f9fc !important; /* leve contraste */
+            }
+            /* Descripción con título de producto subrayado y nota debajo */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-descripcion {
+                line-height: 1.35 !important;
+                min-height: 45mm !important;
+            }
+            /* Si no hay clases específicas, quitar borde de la 3ª celda (DESCRIPCIÓN) y dejar sólo divisor interno */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grid-cell:nth-of-type(3n+3) {
+                border: 1px solid #d1d5db !important; /* Un solo cuadro para DESCRIPCIÓN */
+                border-radius: 8px !important;
+                padding: 6px 8px !important;
+                background: #fefefe !important;
+            }
+            /* Dentro de descripción: sin sub-cuadros */
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grid-cell:nth-of-type(3n+3) .ot-descripcion-producto {
+                border: none !important;
+                padding: 4px 2px !important;
+            }
+            body.print-ot #print-container #otSidebar .ot-grid .ot-grid-cell:nth-of-type(3n+3) textarea {
+                border: none !important;
+                background: transparent !important;
+                padding: 4px 2px !important;
+            }
+            /* Recepcionista sin cuadro (como texto) */
+            body.print-ot #print-container #otSidebar #otReceptionist {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                height: auto !important;
+            }
+            /* Inputs con aspecto de campos impresos */
+            /* Entradas/textarea visibles y con marcos sutiles en impresión */
+            body.print-ot #print-container #otSidebar input,
+            body.print-ot #print-container #otSidebar textarea,
+            body.print-ot #print-container #otSidebar select {
+                border: 1px solid #cfcfcf !important;
+                background: #fff !important;
+                color: #000 !important;
+                padding: 4px 6px !important;
+                border-radius: 2px !important;
+                height: auto !important;
+            }
+            /* Área de descripción amplia */
+            body.print-ot #print-container #otSidebar #otDescripcionInput {
+                min-height: 28mm !important;
+                text-align: left !important;
+            }
+            /* Imagen/gráfica con borde */
+            body.print-ot #print-container #otSidebar img,
+            body.print-ot #print-container #otSidebar .ot-image-holder {
+                border: 1px solid #bdbdbd !important;
+                border-radius: 2px !important;
+                padding: 2mm !important;
+                background: #fff !important;
+            }
+            /* Separadores finos */
+            body.print-ot #print-container #otSidebar hr {
+                border: 0 !important;
+                border-top: 1px solid #d1d5db !important;
+                margin: 6mm 0 !important;
+            }
+            /* Ocultar controles/acciones en O.T. */
+            body.print-ot #print-container #otSidebar .action-buttons,
+            body.print-ot #print-container #otSidebar button,
+            body.print-ot #print-container #otSidebar .btn {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        
+            /* --- Estilos cuando imprimimos el panel de Detalles de OT (otPreviewSidebar) desde index --- */
+            #print-container #otPreviewSidebar {
+                position: relative !important;
+                box-sizing: border-box !important;
+                width: 100% !important;
+                padding: 12mm !important;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: 'Inter', Arial, sans-serif !important;
+                font-size: 11pt !important;
+            }
+            #print-container #otPreviewSidebar h2 {
+                text-align: center !important;
+                font-size: 18pt !important;
+                font-weight: 800 !important;
+                margin: 0 0 10mm 0 !important;
+            }
+            #print-container #otPreviewSidebar .bg-gray-700 { /* tarjeta datos cliente */
+                background: #f3f6fb !important;
+                border: 1px solid #cfd8e3 !important;
+                border-radius: 6px !important;
+                padding: 6mm !important;
+                color: #000 !important;
+            }
+            #print-container #otPreviewSidebar .ot-preview-grid {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 6mm !important;
+                margin-top: 8mm !important;
+            }
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-header {
+                background: #e9edf3 !important;
+                border: 1px solid #b6c2d1 !important;
+                padding: 6px 8px !important;
+                text-transform: uppercase !important;
+                font-weight: 600 !important;
+                color: #000 !important;
+                border-radius: 4px !important;
+                text-align: center !important;
+            }
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell {
+                background: #fff !important;
+                border: none !important; /* base sin borde */
+                padding: 8px 10px !important;
+                min-height: 18mm !important;
+                color: #000 !important;
+            }
+            /* Cantidad: centrada y con un único cuadro suave */
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+1) {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                font-size: 16pt !important;
+                font-weight: 700 !important;
+                border: 1px solid #d1d5db !important;
+                border-radius: 8px !important;
+                background: #fafbfc !important;
+            }
+            /* Gráfica: un solo cuadro, imagen con esquinas suaves pero sin doble borde */
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+2) {
+                border: 1px solid #d1d5db !important;
+                border-radius: 8px !important;
+                background: #f7f9fc !important;
+            }
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+2) img {
+                max-width: 60mm !important;
+                max-height: 40mm !important;
+                width: auto !important;
+                height: auto !important;
+                border: none !important;
+                border-radius: 6px !important;
+                padding: 2mm !important;
+                display: block !important;
+                margin: 0 auto !important;
+                background: #fff !important;
+            }
+            /* Descripción: un solo cuadro para título + nota */
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+3) {
+                border: 1px solid #d1d5db !important;
+                border-radius: 8px !important;
+                background: #fff !important;
+                padding: 6px 8px !important;
+            }
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+3) .border-b { border: none !important; }
+            #print-container #otPreviewSidebar .ot-preview-grid .ot-grid-cell:nth-of-type(3n+3) textarea { border: none !important; background: transparent !important; padding: 4px 0 !important; }
+            /* Ocultar botones del panel al imprimir */
+            #print-container #otPreviewSidebar .action-buttons,
+            #print-container #otPreviewSidebar button { display: none !important; visibility: hidden !important; }
+
+        }
+    </style>
+</head>
+<body class="bg-[#1e1e1e]">
+    <!-- Navigation Bar -->
+    <nav class="bg-[#2a2a2a] text-gray-300 shadow-lg">
+        <div class="container relative mx-auto px-4 py-2 flex items-center" style="height: 56px;">
+            <!-- Logo -->
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-plane text-yellow-500 text-base"></i>
+                <div class="flex flex-col">
+                    <span class="font-bold text-xs uppercase">Speed Servic</span>
+                </div>
+            </div>
+
+            <!-- Main navigation buttons -->
+            <!-- Se ha cambiado 'space-x-4' a 'space-x-2' para reducir aún más el espacio entre los títulos -->
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 transform">
+                <!-- Se ha agregado la clase 'whitespace-nowrap' a todos los enlaces del menú -->
+                <a href="#" class="nav-link text-white whitespace-nowrap" onclick="cargarPagina('cuerpo/stock.html')">PANEL DE CONTROL</a>
+                
+                <!-- Dropdown menu for 'PRODUCTOS' -->
+                <div class="relative group" id="menu-productos">
+                    <a href="javascript:void(0);" class="nav-link dropdown-toggle whitespace-nowrap cursor-default">PRODUCTOS <i class="fas fa-chevron-down text-xs ml-1"></i></a>
+                    <div id="productosDropdown" class="dropdown-menu absolute z-10 bg-[#3a3a3a] shadow-lg rounded-lg mt-2 w-48 text-center sm:text-left p-2">
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos1.html')">vinil imprimible</a>
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos2.html')">vinil de corte</a>
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos3.html')">imantado</a>
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos4.html')">reflectante</a>
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos5.html')">planchas</a>
+                        <a href="#" class="dropdown-item block px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors duration-200" onclick="cargarPagina('cuerpo/productos6.html')">plan. reflectante</a>
+                    </div>
+                </div>
+
+                <a href="#" id="menu-cotizacion" class="nav-link text-white whitespace-nowrap" onclick="cargarPagina('cuerpo/cotizacion.html')">COTIZACION</a>
+                <a href="#" class="nav-link text-white whitespace-nowrap" onclick="cargarPagina('cuerpo/detalles de OT.html')">REGISTROS DE O.T.</a>
+                
+                <a href="#" id="menu-venta" class="nav-link text-white whitespace-nowrap" onclick="cargarPagina('cuerpo/detalles de venta.html')">DETALLES DE VENTA</a>
+                <a href="#" class="nav-link text-white whitespace-nowrap" onclick="logout()">SALIR</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-0 py-0 text-white" style="max-width:100vw;">
+        <div id="contenido-principal">
+            <!-- Aquí se mostrará el contenido de las páginas -->
+            <iframe id="iframe-contenido" src="" allowfullscreen sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-modals"></iframe>
+        </div>
+    </main>
+
+    <!-- Contenedor oculto para la impresión -->
+    <div id="print-container"></div>
+
+    <!-- Aquí se ha pegado tu nuevo código JavaScript -->
+    <script>
+        // --- Configuración e Inicialización de Supabase ---
+        const SUPABASE_URL = 'https://pnsxdhojmchgeykfxipp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuc3hkaG9qbWNoZ2V5a2Z4aXBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzODQyNjksImV4cCI6MjA3OTk2MDI2OX0.T7nhIoUsMKH9KHrqrXVxQFPDbEZ3IsjeRvQf1ZyLwj0';
+
+        // Crear el cliente de Supabase y hacerlo accesible globalmente
+        // para que los iframes puedan usarlo a través de `window.parent.supabase`
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabase = supabaseClient; // Hacemos el cliente accesible globalmente
+        console.log("Cliente de Supabase inicializado correctamente.");
+
+        // --- Fin de la configuración de Supabase ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Control de Acceso por Rol ---
+            const userRole = sessionStorage.getItem('userRole');
+
+            if (userRole === 'trabajador') {
+                // Ocultar elementos del menú que no corresponden al trabajador
+                const menuProductos = document.getElementById('menu-productos');
+                const menuCotizacion = document.getElementById('menu-cotizacion');
+                const menuVenta = document.getElementById('menu-venta');
+
+                if (menuProductos) menuProductos.style.display = 'none';
+                if (menuCotizacion) menuCotizacion.style.display = 'none';
+                if (menuVenta) menuVenta.style.display = 'none';
+            }
+            // --- Fin del Control de Acceso ---
+
+            const productosMenuContainer = document.getElementById('menu-productos');
+
+            if (productosMenuContainer) {
+                const dropdownMenu = productosMenuContainer.querySelector('.dropdown-menu');
+                const toggle = productosMenuContainer.querySelector('.dropdown-toggle');
+
+                // Mostrar el menú al pasar el cursor sobre el contenedor
+                productosMenuContainer.addEventListener('mouseenter', () => {
+                    // Quitar la clase de cierre si existe y abrir el dropdown
+                    try { if (dropdownMenu) dropdownMenu.classList.remove('closing'); } catch(e){}
+                    dropdownMenu.classList.add('show');
+                });
+
+                // Evitar que el botón PRODUCTOS haga cualquier acción al hacer click.
+                // Dejamos intacto el comportamiento por hover; el click no hará nada.
+                if (toggle) {
+                    toggle.addEventListener('click', function (ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        // no-op: solo hover debe abrir el menú
+                    });
+                }
+
+                // Ocultar el menú al sacar el cursor, excepto si se mueve hacia arriba desde el menú
+                productosMenuContainer.addEventListener('mouseleave', (e) => {
+                    const menuRect = dropdownMenu.getBoundingClientRect();
+                    // Si el cursor sale por arriba del menú, no lo cerramos.
+                    if (e.clientY < menuRect.top) {
+                        return;
+                    }
+                    dropdownMenu.classList.remove('show'); // Cerrar si sale por los lados o por abajo.
+                });
+
+            }
+
+            // Cierra el menú si se hace clic fuera de él
+            document.addEventListener('click', (e) => {
+                const openDropdown = document.querySelector('.dropdown-menu.show');
+                if (openDropdown && !openDropdown.parentElement.contains(e.target)) {
+                    openDropdown.classList.remove('show');
+                }
+            });
+
+            // Ensure clicking a submenu item closes the productos dropdown immediately
+            const productoItems = document.querySelectorAll('#productosDropdown .dropdown-item');
+            productoItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const pd = document.getElementById('productosDropdown');
+                    try {
+                        if (pd) {
+                            // cerrar y aplicar clase temporal para evitar remanentes visuales
+                            pd.classList.remove('show');
+                            pd.classList.add('closing');
+                        }
+                        if (typeof detachWatcher === 'function') {
+                            try { detachWatcher(); } catch(e) { /* ignore */ }
+                        }
+                    } catch (err) {
+                        console.debug(' defensive close error', err);
+                    }
+                    // eliminar la clase 'closing' pasados 300ms para permitir futuras aperturas
+                    setTimeout(() => { try { if (pd) pd.classList.remove('closing'); } catch(e){} }, 350);
+                });
+            });
+
+            // Cuando el cursor entra en cualquier otro enlace del top-bar, cerrar el dropdown de Productos.
+            // Esto evita que el submenú quede abierto si el usuario se mueve a otro botón superior.
+            const topNavLinks = Array.from(document.querySelectorAll('.nav-link'));
+            topNavLinks.forEach(link => {
+                // ignorar el toggle del propio menu productos
+                if (link.classList.contains('dropdown-toggle')) return;
+                link.addEventListener('mouseenter', () => {
+                    const pd = document.getElementById('productosDropdown');
+                    if (pd && pd.classList.contains('show')) {
+                        pd.classList.remove('show');
+                    }
+                });
+            });
+
+            // Robust: also listen on the nav area for pointer movements and close the productos dropdown
+            // when the pointer is over the nav but NOT over the productosMenu container. This fixes
+            // cases where after loading an iframe the other links don't receive mouseenter events.
+            const navBar = document.querySelector('nav');
+            if (navBar && productosMenuContainer) {
+                navBar.addEventListener('mousemove', (ev) => {
+                    const pd = document.getElementById('productosDropdown');
+                    if (!pd) return;
+
+                    const navRect = navBar.getBoundingClientRect();
+                    const menuRect = productosMenuContainer.getBoundingClientRect();
+
+                    const x = ev.clientX;
+                    const y = ev.clientY;
+                    // If pointer is inside nav but outside productosMenu area, close dropdown
+                    const insideNav = x >= navRect.left && x <= navRect.right && y >= navRect.top && y <= navRect.bottom;
+                    const insideMenu = x >= menuRect.left && x <= menuRect.right && y >= menuRect.top && y <= menuRect.bottom;
+
+                    if (insideNav && !insideMenu) {
+                        pd.classList.remove('show');
+                    }
+                });
+            }
+
+            // Cargar la página del panel de control por defecto al iniciar
+            cargarPagina('cuerpo/stock.html');
+        });
+
+        // --- Lógica de Impresión Centralizada ---
+        window.addEventListener('message', (event) => {
+            const iframe = document.getElementById('iframe-contenido');
+            if (!iframe || event.source !== iframe.contentWindow) {
+                return; // Ignorar mensajes que no vienen del iframe esperado
+            }
+
+            const printContainer = document.getElementById('print-container');
+            if (!printContainer) return;
+
+            // Función para clonar y preparar el contenido para impresión
+            const prepareAndPrint = (selector, printBodyClass = '') => {
+                const contentToPrint = iframe.contentWindow.document.querySelector(selector);
+                if (contentToPrint) {
+                    printContainer.innerHTML = ''; // Limpiar contenedor
+                    const clonedContent = contentToPrint.cloneNode(true);
+                    printContainer.appendChild(clonedContent);
+
+                    // Añadir clase al body para estilos de impresión específicos
+                    if (printBodyClass) {
+                        document.body.classList.add(printBodyClass);
+                    }
+
+                    // Forzar repaint y luego imprimir
+                    setTimeout(() => {
+                        window.print();
+                        // Limpiar después de imprimir
+                        if (printBodyClass) {
+                            document.body.classList.remove(printBodyClass);
+                        }
+                    }, 150);
+                }
+            };
+
+            if (event.data.type === 'show-quote-preview') {
+                // Este mensaje es para MOSTRAR el panel de previsualización de la cotización.
+                // La página de cotización.html se encargará de la lógica de mostrar/ocultar.
+                // Este bloque en index.html puede usarse para orquestar acciones si fuera necesario,
+                // pero por ahora, el problema principal es evitar que la lógica de impresión interfiera.
+                // Dejamos este caso para futura extensibilidad, no se requiere acción inmediata aquí.
+                console.log('Recibido evento para mostrar previsualización de cotización.');
+
+            } else if (event.data.type === 'print-quote') {
+                // Este mensaje es explícitamente para IMPRIMIR la cotización.
+                // El selector del contenido a imprimir viene en el mensaje.
+                const selector = event.data.selector || '#previewSidebar';
+                prepareAndPrint(selector);
+
+            } else if (event.data.type === 'vinil:new-sale') {
+                // Cuando una cotización nueva se guarda, varias páginas pueden necesitar refrescarse.
+                try {
+                    const src = iframe.src || '';
+                    // Si el iframe actualmente muestra los registros de O.T. o la sección de ventas,
+                    // recargamos para que tomen los datos recién guardados en localStorage.
+                    if (src.includes('detalles de OT.html') || src.includes('detalles de venta.html')) {
+                        // Intentar recargar la página interna de forma segura
+                        try {
+                            iframe.contentWindow.location.reload();
+                        } catch (err) {
+                            // Fallback: reasignar src para forzar recarga
+                            iframe.src = iframe.src;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error al manejar vinil:new-sale:', err);
+                }
+            } else if (event.data.type === 'print-ot-content') {
+                // Para la O.T., permitir que el iframe defina el selector del panel a imprimir
+                const selector = (event.data && event.data.selector) ? event.data.selector : '#otSidebar';
+                prepareAndPrint(selector, 'print-ot');
+            }
+        });
+
+        function cargarPagina(ruta) {
+            const iframe = document.getElementById('iframe-contenido');
+
+            if (ruta === 'inicio') {
+                iframe.style.display = 'none';
+                // Aquí podrías mostrar un panel de bienvenida si lo deseas
+            } else {
+                iframe.src = ruta;
+                iframe.style.display = 'block';
+                // Cierra el menú de productos si está abierto
+                const productosDropdown = document.getElementById('productosDropdown');
+                if (productosDropdown && productosDropdown.classList.contains('show')) {
+                    productosDropdown.classList.remove('show');
+                }
+            }
+        }
+
+        function logout() {
+            // 1. Limpiar los datos de la sesión que indican que el usuario está logueado.
+            sessionStorage.removeItem('isLoggedIn');
+            sessionStorage.removeItem('userRole');
+
+            // 2. Redirigir al usuario a la página de ingreso.
+            // La ruta es relativa a la ubicación de index.html
+            window.location.href = 'cuerpo/ingreso.html';
+        }
+    </script>
+</body>
+</html>
